@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Agenda — Caderno Online</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238b5cf6'><path d='M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25'/></svg>">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            background: 'hsl(var(--background))',
+            foreground: 'hsl(var(--foreground))',
+            card: 'hsl(var(--card))',
+            muted: 'hsl(var(--muted))',
+            'muted-foreground': 'hsl(var(--muted-foreground))',
+            border: 'hsl(var(--border))',
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    :root {
+      --background: 0 0% 100%; --foreground: 222.2 84% 4.9%;
+      --card: 0 0% 100%; --muted: 210 40% 96.1%; --muted-foreground: 215.4 16.3% 46.9%;
+      --border: 214.3 31.8% 91.4%;
+    }
+    .dark {
+      --background: 222.2 84% 4.9%; --foreground: 210 40% 98%;
+      --card: 222.2 84% 4.9%; --muted: 217.2 32.6% 17.5%; --muted-foreground: 215 20.2% 65.1%;
+      --border: 217.2 32.6% 17.5%;
+    }
+    body { font-family: system-ui, -apple-system, sans-serif; }
+    .modal { opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .modal.open { opacity: 1; pointer-events: auto; }
+    .calendar-day { min-height: 100px; }
+  </style>
+</head>
+<body class="bg-background text-foreground min-h-screen transition-colors duration-300">
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="index.html" class="h-9 w-9 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center hover:opacity-90 transition">
+          <i data-lucide="book-open" class="h-5 w-5 text-white"></i>
+        </a>
+        <h1 class="text-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">Caderno Online</h1>
+      </div>
+      <button id="themeToggle" class="inline-flex items-center justify-center size-9 rounded-full bg-muted hover:bg-accent transition focus:outline-none focus:ring-2 focus:ring-purple-500/50" aria-label="Alternar tema">
+        <i data-lucide="sun" class="h-5 w-5 transition-all dark:rotate-90 dark:opacity-0"></i>
+        <i data-lucide="moon" class="h-5 w-5 transition-all -rotate-90 opacity-0 dark:rotate-0 dark:opacity-100 absolute"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <div>
+        <h2 class="text-2xl font-bold flex items-center gap-2">
+          <i data-lucide="calendar" class="h-6 w-6 text-orange-500"></i>
+          Agenda de Aulas
+        </h2>
+        <p class="text-muted-foreground text-sm mt-1">Gerencie horários, agendamentos e status das aulas</p>
+      </div>
+      <button onclick="openModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+        <i data-lucide="plus" class="h-4 w-4"></i> Nova Aula
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-card rounded-xl border p-4">
+        <p class="text-xs text-muted-foreground">Agendadas</p>
+        <p class="text-2xl font-bold text-blue-600 dark:text-blue-400" id="stat-agendadas">0</p>
+      </div>
+      <div class="bg-card rounded-xl border p-4">
+        <p class="text-xs text-muted-foreground">Hoje</p>
+        <p class="text-2xl font-bold text-purple-600 dark:text-purple-400" id="stat-hoje">0</p>
+      </div>
+      <div class="bg-card rounded-xl border p-4">
+        <p class="text-xs text-muted-foreground">Concluídas</p>
+        <p class="text-2xl font-bold text-green-600 dark:text-green-400" id="stat-concluidas">0</p>
+      </div>
+      <div class="bg-card rounded-xl border p-4">
+        <p class="text-xs text-muted-foreground">Canceladas</p>
+        <p class="text-2xl font-bold text-red-600 dark:text-red-400" id="stat-canceladas">0</p>
+      </div>
+    </div>
+
+    <!-- Calendar Navigation -->
+    <div class="flex items-center justify-between mb-4">
+      <button onclick="changeMonth(-1)" class="p-2 hover:bg-muted rounded-lg transition"><i data-lucide="chevron-left" class="h-5 w-5"></i></button>
+      <h3 class="text-lg font-semibold" id="currentMonthYear"></h3>
+      <button onclick="changeMonth(1)" class="p-2 hover:bg-muted rounded-lg transition"><i data-lucide="chevron-right" class="h-5 w-5"></i></button>
+    </div>
+
+    <!-- Calendar Grid -->
+    <div class="bg-card rounded-xl border overflow-hidden mb-6">
+      <div class="grid grid-cols-7 border-b bg-muted/50">
+        <div class="p-2 text-center text-xs font-medium text-muted-foreground">Dom</div>
+        <div class="p-2 text-center text-xs font-medium text-muted-foreground">Seg</div>
+        <div class="p-2 text-center text-xs font-medium text-muted-foreground">Ter</div>
+        <div class="p-2 text-center text-xs font-medium text-muted-foreground">Qua</div>
+        <div class="p-2 text-center text-xs font-medium text-muted-foreground">Qui</div>
+        <div class="p-2 text-center text-xs font-medium text-muted-foreground">Sex</div>
+        <div class="p-2 text-center text-xs font-medium text-muted-foreground">Sáb</div>
+      </div>
+      <div id="calendarGrid" class="grid grid-cols-7">
+        <!-- Days injected by JS -->
+      </div>
+    </div>
+
+    <!-- Selected Day Classes -->
+    <div class="bg-card rounded-xl border p-6">
+      <h3 class="font-semibold text-lg mb-4 flex items-center gap-2">
+        <i data-lucide="list" class="h-5 w-5 text-orange-500"></i>
+        Aulas em <span id="selectedDateText">...</span>
+      </h3>
+      <div id="dayClassesList" class="space-y-3">
+        <p class="text-sm text-muted-foreground text-center py-4">Nenhuma aula agendada para este dia.</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL -->
+  <div id="classModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div class="bg-card rounded-xl border w-full max-w-lg p-6 shadow-xl">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="modalTitle" class="text-lg font-semibold">Nova Aula</h3>
+        <button onclick="closeModal()" class="p-1 hover:bg-muted rounded-full transition"><i data-lucide="x" class="h-5 w-5"></i></button>
+      </div>
+      <form id="classForm" class="space-y-4">
+        <input type="hidden" id="classId">
+        <div>
+          <label class="block text-sm font-medium mb-1">Aluno ou Turma *</label>
+          <select id="targetType" class="w-full px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-orange-500/50" onchange="updateTargetOptions()">
+            <option value="aluno">Aluno Individual</option>
+            <option value="turma">Turma</option>
+          </select>
+          <select id="targetId" class="w-full mt-2 px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-orange-500/50"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">Data *</label>
+            <input type="date" id="data" required class="w-full px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Horário *</label>
+            <input type="time" id="horario" required class="w-full px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Status</label>
+          <select id="status" class="w-full px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+            <option value="agendada">Agendada</option>
+            <option value="concluida">Concluída</option>
+            <option value="cancelada">Cancelada</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Observações</label>
+          <textarea id="observacoes" rows="2" class="w-full px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-orange-500/50"></textarea>
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border rounded-lg hover:bg-muted transition">Cancelar</button>
+          <button type="submit" class="flex-1 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="mt-auto border-t bg-background/80 backdrop-blur-md py-4">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-muted-foreground">
+      © <span id="year"></span> Caderno Online — Plataforma de Ensino de Idiomas
+    </div>
+  </footer>
+
+  <script>
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+    const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
+
+    // THEME
+    const themeToggle = $('#themeToggle');
+    const html = document.documentElement;
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) html.classList.add('dark');
+    themeToggle.addEventListener('click', () => {
+      html.classList.toggle('dark');
+      localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    // DATA
+    const defaultData = { alunos: [], turmas: [], cefr: [], financeiro: {entradas:0,saidas:0}, agenda: [] };
+    function loadData() {
+      const stored = localStorage.getItem('cadernoOnlineData');
+      return stored ? JSON.parse(stored) : defaultData;
+    }
+    function saveData(data) {
+      localStorage.setItem('cadernoOnlineData', JSON.stringify(data));
+      renderCalendar();
+      renderStats();
+    }
+
+    // CALENDAR STATE
+    let currentDate = new Date();
+    let selectedDate = new Date().toISOString().split('T')[0];
+
+    function changeMonth(delta) {
+      currentDate.setMonth(currentDate.getMonth() + delta);
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      $('#currentMonthYear').textContent = new Date(year, month).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const grid = $('#calendarGrid');
+      grid.innerHTML = '';
+
+      const today = new Date().toISOString().split('T')[0];
+      const data = loadData();
+
+      // Empty slots
+      for (let i = 0; i < firstDay; i++) {
+        grid.innerHTML += `<div class="calendar-day border-b border-r bg-muted/20"></div>`;
+      }
+
+      // Days
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const isToday = dateStr === today;
+        const isSelected = dateStr === selectedDate;
+        const dayClasses = data.agenda.filter(a => a.data === dateStr);
+        const hasClass = dayClasses.length > 0;
+
+        grid.innerHTML += `
+          <div onclick="selectDate('${dateStr}')" class="calendar-day border-b border-r p-1 cursor-pointer hover:bg-muted/50 transition relative ${isSelected ? 'bg-purple-50 dark:bg-purple-900/20' : ''}">
+            <div class="text-xs font-medium ${isToday ? 'bg-purple-600 text-white rounded-full w-5 h-5 flex items-center justify-center' : ''}">${d}</div>
+            ${hasClass ? `<div class="mt-1 space-y-0.5">${dayClasses.slice(0,3).map(c => `<div class="text-[10px] truncate px-1 py-0.5 rounded ${c.status === 'concluida' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : c.status === 'cancelada' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'}">${c.horario?.substring(0,5)}</div>`).join('')}${dayClasses.length > 3 ? `<div class="text-[10px] text-muted-foreground px-1">+${dayClasses.length - 3}</div>` : ''}</div>` : ''}
+          </div>
+        `;
+      }
+    }
+
+    function selectDate(dateStr) {
+      selectedDate = dateStr;
+      $('#selectedDateText').textContent = new Date(dateStr + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+      renderCalendar();
+      renderDayClasses();
+    }
+
+    function renderDayClasses() {
+      const data = loadData();
+      const dayClasses = data.agenda.filter(a => a.data === selectedDate).sort((a,b) => a.horario.localeCompare(b.horario));
+      const list = $('#dayClassesList');
+
+      if (dayClasses.length === 0) {
+        list.innerHTML = `<p class="text-sm text-muted-foreground text-center py-4">Nenhuma aula agendada para este dia.</p>`;
+        return;
+      }
+
+      const statusColors = { agendada: 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400', concluida: 'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400', cancelada: 'bg-red-50 border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400' };
+
+      list.innerHTML = dayClasses.map(c => {
+        const target = c.targetType === 'aluno' ? (data.alunos.find(a => a.id === c.targetId)?.nome || 'Aluno') : (data.turmas.find(t => t.id === c.targetId)?.nome || 'Turma');
+        return `
+        <div class="p-3 rounded-lg border flex justify-between items-center ${statusColors[c.status]}">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="font-semibold">${c.horario}</span>
+              <span class="text-xs px-2 py-0.5 rounded-full bg-white/50 dark:bg-black/20 capitalize">${c.status}</span>
+            </div>
+            <p class="text-sm font-medium">${target}</p>
+            ${c.observacoes ? `<p class="text-xs mt-1 opacity-70">${c.observacoes}</p>` : ''}
+          </div>
+          <div class="flex gap-1">
+            <button onclick="editClass('${c.id}')" class="p-1.5 hover:bg-white/50 dark:hover:bg-black/20 rounded transition"><i data-lucide="pencil" class="h-4 w-4"></i></button>
+            <button onclick="deleteClass('${c.id}')" class="p-1.5 hover:bg-white/50 dark:hover:bg-black/20 text-red-500 rounded transition"><i data-lucide="trash-2" class="h-4 w-4"></i></button>
+          </div>
+        </div>`;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    function renderStats() {
+      const data = loadData();
+      const today = new Date().toISOString().split('T')[0];
+      $('#stat-agendadas').textContent = data.agenda.filter(a => a.status === 'agendada').length;
+      $('#stat-hoje').textContent = data.agenda.filter(a => a.data === today).length;
+      $('#stat-concluidas').textContent = data.agenda.filter(a => a.status === 'concluida').length;
+      $('#stat-canceladas').textContent = data.agenda.filter(a => a.status === 'cancelada').length;
+    }
+
+    // MODAL
+    function updateTargetOptions() {
+      const type = $('#targetType').value;
+      const select = $('#targetId');
+      const data = loadData();
+      const items = type === 'aluno' ? data.alunos : data.turmas;
+      select.innerHTML = items.map(i => `<option value="${i.id}">${i.nome}</option>`).join('');
+      if (items.length === 0) select.innerHTML = '<option value="">Nenhum cadastrado</option>';
+    }
+
+    function openModal(id = null) {
+      $('#classModal').classList.add('open');
+      $('#modalTitle').textContent = id ? 'Editar Aula' : 'Nova Aula';
+      $('#classId').value = id || '';
+      $('#classForm').reset();
+      updateTargetOptions();
+      $('#data').value = selectedDate;
+
+      if (id) {
+        const data = loadData();
+        const c = data.agenda.find(x => x.id === id);
+        if (c) {
+          $('#targetType').value = c.targetType;
+          updateTargetOptions();
+          $('#targetId').value = c.targetId;
+          $('#data').value = c.data;
+          $('#horario').value = c.horario;
+          $('#status').value = c.status;
+          $('#observacoes').value = c.observacoes || '';
+        }
+      }
+    }
+
+    function closeModal() { $('#classModal').classList.remove('open'); }
+
+    $('#classForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const data = loadData();
+      const id = $('#classId').value;
+      const classData = {
+        id: id || generateId(),
+        targetType: $('#targetType').value,
+        targetId: $('#targetId').value,
+        data: $('#data').value,
+        horario: $('#horario').value,
+        status: $('#status').value,
+        observacoes: $('#observacoes').value.trim()
+      };
+
+      if (id) {
+        const idx = data.agenda.findIndex(x => x.id === id);
+        if (idx !== -1) data.agenda[idx] = { ...data.agenda[idx], ...classData };
+      } else {
+        data.agenda.push(classData);
+      }
+
+      saveData(data);
+      closeModal();
+      renderDayClasses();
+    });
+
+    function editClass(id) { openModal(id); }
+    function deleteClass(id) {
+      if (!confirm('Tem certeza que deseja excluir esta aula?')) return;
+      const data = loadData();
+      data.agenda = data.agenda.filter(c => c.id !== id);
+      saveData(data);
+      renderDayClasses();
+    }
+
+    // EVENTS
+    document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModal(); });
+    $('#classModal').addEventListener('click', (e) => { if(e.target === $('#classModal')) closeModal(); });
+
+    // INIT
+    document.addEventListener('DOMContentLoaded', () => {
+      $('#year').textContent = new Date().getFullYear();
+      selectDate(new Date().toISOString().split('T')[0]);
+      lucide.createIcons();
+      renderStats();
+    });
+  </script>
+</body>
+</html>
