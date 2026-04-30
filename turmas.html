@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Turmas — Caderno Online</title>
+  <link rel="icon" href="image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238b5cf6'><path d='M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25'/></svg>">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: {
+        colors: {
+          background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+          card: 'hsl(var(--card))', muted: 'hsl(var(--muted))',
+          'muted-foreground': 'hsl(var(--muted-foreground))', border: 'hsl(var(--border))'
+        }
+      }}
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    :root {
+      --background: 0 0% 100%; --foreground: 222.2 84% 4.9%;
+      --card: 0 0% 100%; --muted: 210 40% 96.1%; --muted-foreground: 215.4 16.3% 46.9%;
+      --border: 214.3 31.8% 91.4%;
+    }
+    .dark {
+      --background: 222.2 84% 4.9%; --foreground: 210 40% 98%;
+      --card: 222.2 84% 4.9%; --muted: 217.2 32.6% 17.5%; --muted-foreground: 215 20.2% 65.1%;
+      --border: 217.2 32.6% 17.5%;
+    }
+    body { font-family: system-ui, -apple-system, sans-serif; }
+    .modal { opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .modal.open { opacity: 1; pointer-events: auto; }
+    .turma-card { transition: all 0.2s; }
+    .turma-card:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.08); }
+    .checkbox-grid { max-height: 160px; overflow-y: auto; }
+  </style>
+</head>
+<body class="bg-background text-foreground min-h-screen transition-colors duration-300">
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="index.html" class="h-9 w-9 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center hover:opacity-90 transition">
+          <i data-lucide="book-open" class="h-5 w-5 text-white"></i>
+        </a>
+        <h1 class="text-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">Caderno Online</h1>
+      </div>
+      <button id="themeToggle" class="inline-flex items-center justify-center size-9 rounded-full bg-muted hover:bg-accent transition focus:outline-none focus:ring-2 focus:ring-purple-500/50" aria-label="Alternar tema">
+        <i data-lucide="sun" class="h-5 w-5 transition-all dark:rotate-90 dark:opacity-0"></i>
+        <i data-lucide="moon" class="h-5 w-5 transition-all -rotate-90 opacity-0 dark:rotate-0 dark:opacity-100 absolute"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <div>
+        <h2 class="text-2xl font-bold flex items-center gap-2">
+          <i data-lucide="graduation-cap" class="h-6 w-6 text-blue-500"></i>
+          Gestão de Turmas
+        </h2>
+        <p class="text-muted-foreground text-sm mt-1">Organize horários, níveis e alunos por grupo</p>
+      </div>
+      <button onclick="openModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+        <i data-lucide="plus" class="h-4 w-4"></i> Nova Turma
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex flex-col sm:flex-row gap-3 mb-6">
+      <div class="relative flex-1">
+        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"></i>
+        <input type="text" id="searchInput" placeholder="Buscar turma ou professor..." class="w-full pl-10 pr-4 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+      </div>
+      <select id="levelFilter" class="px-4 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+        <option value="">Todos os níveis</option>
+        <option value="A1">A1</option><option value="A2">A2</option><option value="B1">B1</option>
+        <option value="B2">B2</option><option value="C1">C1</option><option value="C2">C2</option>
+      </select>
+      <select id="statusFilter" class="px-4 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+        <option value="">Todos os status</option>
+        <option value="ativa">Ativa</option><option value="pausada">Pausada</option><option value="concluida">Concluída</option>
+      </select>
+    </div>
+
+    <!-- Turma List -->
+    <div id="turmaList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden flex flex-col items-center justify-center py-16 text-center">
+      <div class="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
+        <i data-lucide="users" class="h-8 w-8 text-muted-foreground"></i>
+      </div>
+      <h3 class="text-lg font-semibold mb-2">Nenhuma turma encontrada</h3>
+      <p class="text-muted-foreground max-w-sm">Crie sua primeira turma ou ajuste os filtros.</p>
+    </div>
+  </main>
+
+  <!-- MODAL -->
+  <div id="turmaModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div class="bg-card rounded-xl border w-full max-w-lg p-6 shadow-xl">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="modalTitle" class="text-lg font-semibold">Nova Turma</h3>
+        <button onclick="closeModal()" class="p-1 hover:bg-muted rounded-full transition"><i data-lucide="x" class="h-5 w-5"></i></button>
+      </div>
+      <form id="turmaForm" class="space-y-4">
+        <input type="hidden" id="turmaId">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="col-span-2 sm:col-span-1">
+            <label class="block text-sm font-medium mb-1">Nome da Turma *</label>
+            <input type="text" id="nome" required class="w-full px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-blue-500/50" placeholder="Ex: Inglês B1 Manhã">
+          </div>
+          <div class="col-span-2 sm:col-span-1">
+            <label class="block text-sm font-medium mb-1">Nível CEFR</label>
+            <select id="nivel" class="w-full px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+              <option value="">Selecionar</option>
+              <option value="A1">A1</option><option value="A2">A2</option><option value="B1">B1</option>
+              <option value="B2">B2</option><option value="C1">C1</option><option value="C2">C2</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">Horário</label>
+            <input type="text" id="horario" class="w-full px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-blue-500/50" placeholder="Ex: 18:00 - 19:30">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Status</label>
+            <select id="status" class="w-full px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+              <option value="ativa">Ativa</option><option value="pausada">Pausada</option><option value="concluida">Concluída</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Dias da Semana</label>
+          <div class="flex flex-wrap gap-2" id="diasContainer">
+            <!-- Checkboxes gerados via JS -->
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Professor</label>
+          <input type="text" id="professor" class="w-full px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Alunos Vinculados</label>
+          <div id="alunosContainer" class="checkbox-grid p-3 border rounded-lg bg-muted/30 space-y-1">
+            <p class="text-sm text-muted-foreground text-center py-2">Nenhum aluno cadastrado ainda.</p>
+          </div>
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border rounded-lg hover:bg-muted transition">Cancelar</button>
+          <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="mt-auto border-t bg-background/80 backdrop-blur-md py-4">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-muted-foreground">
+      © <span id="year"></span> Caderno Online — Plataforma de Ensino de Idiomas
+    </div>
+  </footer>
+
+  <!-- JAVASCRIPT -->
+  <script>
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+    const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
+    
+    // ===== THEME =====
+    const themeToggle = $('#themeToggle');
+    const html = document.documentElement;
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) html.classList.add('dark');
+    themeToggle.addEventListener('click', () => {
+      html.classList.toggle('dark');
+      localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    // ===== DATA =====
+    const defaultData = { alunos: [], turmas: [], cefr: {A1:0,A2:0,B1:0,B2:0,C1:0,C2:0}, financeiro: {entradas:0,saidas:0}, agenda: [] };
+    function loadData() {
+      const stored = localStorage.getItem('cadernoOnlineData');
+      return stored ? JSON.parse(stored) : defaultData;
+    }
+    function saveData(data) {
+      localStorage.setItem('cadernoOnlineData', JSON.stringify(data));
+      renderTurmas();
+    }
+
+    // ===== RENDER =====
+    function renderTurmas() {
+      const data = loadData();
+      const search = $('#searchInput').value.toLowerCase().trim();
+      const level = $('#levelFilter').value;
+      const status = $('#statusFilter').value;
+
+      let filtered = data.turmas.filter(t => {
+        const matchSearch = !search || t.nome.toLowerCase().includes(search) || (t.professor || '').toLowerCase().includes(search);
+        const matchLevel = !level || t.nivel === level;
+        const matchStatus = !status || t.status === status;
+        return matchSearch && matchLevel && matchStatus;
+      });
+
+      const listEl = $('#turmaList');
+      const emptyEl = $('#emptyState');
+      
+      if (filtered.length === 0) { listEl.innerHTML = ''; emptyEl.classList.remove('hidden'); return; }
+      emptyEl.classList.add('hidden');
+
+      const statusColors = { ativa: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', pausada: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400', concluida: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400' };
+      
+      listEl.innerHTML = filtered.map(t => {
+        const alunosNomes = (t.alunosIds || []).map(id => {
+          const a = data.alunos.find(x => x.id === id);
+          return a ? a.nome : null;
+        }).filter(Boolean);
+        
+        return `
+        <div class="turma-card bg-card rounded-xl border p-4 flex flex-col gap-3">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <h4 class="font-semibold text-lg">${t.nome}</h4>
+                ${t.nivel ? `<span class="px-2 py-0.5 text-xs font-medium rounded bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">${t.nivel}</span>` : ''}
+              </div>
+              <p class="text-sm text-muted-foreground">${t.professor || 'Professor não definido'}</p>
+            </div>
+            <span class="px-2 py-1 text-xs font-medium rounded-full ${statusColors[t.status] || statusColors.ativa}">${t.status.charAt(0).toUpperCase() + t.status.slice(1)}</span>
+          </div>
+          <div class="text-sm space-y-1 text-muted-foreground pt-2 border-t">
+            ${t.horario ? `<p class="flex items-center gap-1.5"><i data-lucide="clock" class="h-3.5 w-3.5"></i> ${t.horario}</p>` : ''}
+            ${t.dias?.length ? `<p class="flex items-center gap-1.5"><i data-lucide="calendar-days" class="h-3.5 w-3.5"></i> ${t.dias.join(', ')}</p>` : ''}
+            <p class="flex items-center gap-1.5"><i data-lucide="users" class="h-3.5 w-3.5"></i> ${alunosNomes.length > 0 ? alunosNomes.join(', ') : 'Sem alunos vinculados'}</p>
+          </div>
+          <div class="flex justify-end gap-2 pt-2 border-t">
+            <button onclick="editTurma('${t.id}')" class="px-3 py-1.5 text-sm border rounded hover:bg-muted transition flex items-center gap-1"><i data-lucide="pencil" class="h-3.5 w-3.5"></i> Editar</button>
+            <button onclick="deleteTurma('${t.id}')" class="px-3 py-1.5 text-sm text-red-500 border border-red-200 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition flex items-center gap-1"><i data-lucide="trash-2" class="h-3.5 w-3.5"></i> Excluir</button>
+          </div>
+        </div>`;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    // ===== MODAL & FORM =====
+    const diasSemana = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+    function renderDiasCheckbox(selected = []) {
+      $('#diasContainer').innerHTML = diasSemana.map(dia => `
+        <label class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer hover:bg-muted/50 transition">
+          <input type="checkbox" value="${dia}" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" ${selected.includes(dia) ? 'checked' : ''}>
+          <span class="text-sm">${dia}</span>
+        </label>
+      `).join('');
+    }
+
+    function renderAlunosCheckbox(selectedIds = []) {
+      const data = loadData();
+      const container = $('#alunosContainer');
+      if (data.alunos.length === 0) {
+        container.innerHTML = '<p class="text-sm text-muted-foreground text-center py-2">Nenhum aluno cadastrado ainda.</p>';
+        return;
+      }
+      container.innerHTML = data.alunos.map(a => `
+        <label class="flex items-center gap-2 p-2 rounded hover:bg-muted/50 cursor-pointer">
+          <input type="checkbox" value="${a.id}" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" ${selectedIds.includes(a.id) ? 'checked' : ''}>
+          <div>
+            <p class="text-sm font-medium">${a.nome}</p>
+            <p class="text-xs text-muted-foreground">${a.nivel || 'N/A'}</p>
+          </div>
+        </label>
+      `).join('');
+    }
+
+    function openModal(id = null) {
+      $('#turmaModal').classList.add('open');
+      $('#modalTitle').textContent = id ? 'Editar Turma' : 'Nova Turma';
+      $('#turmaId').value = id || '';
+      $('#turmaForm').reset();
+      renderDiasCheckbox([]);
+      renderAlunosCheckbox([]);
+
+      if (id) {
+        const data = loadData();
+        const t = data.turmas.find(x => x.id === id);
+        if (t) {
+          $('#nome').value = t.nome;
+          $('#nivel').value = t.nivel || '';
+          $('#horario').value = t.horario || '';
+          $('#status').value = t.status || 'ativa';
+          $('#professor').value = t.professor || '';
+          setTimeout(() => {
+            renderDiasCheckbox(t.dias || []);
+            renderAlunosCheckbox(t.alunosIds || []);
+          }, 50);
+        }
+      }
+    }
+
+    function closeModal() { $('#turmaModal').classList.remove('open'); }
+
+    $('#turmaForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const data = loadData();
+      const id = $('#turmaId').value;
+      const selectedDias = Array.from($$('#diasContainer input:checked')).map(cb => cb.value);
+      const selectedAlunos = Array.from($$('#alunosContainer input:checked')).map(cb => cb.value);
+
+      const turmaData = {
+        id: id || generateId(),
+        nome: $('#nome').value.trim(),
+        nivel: $('#nivel').value,
+        horario: $('#horario').value.trim(),
+        status: $('#status').value,
+        dias: selectedDias,
+        professor: $('#professor').value.trim(),
+        alunosIds: selectedAlunos,
+        atualizadoEm: new Date().toISOString()
+      };
+
+      if (id) {
+        const idx = data.turmas.findIndex(x => x.id === id);
+        if (idx !== -1) data.turmas[idx] = { ...data.turmas[idx], ...turmaData };
+      } else {
+        turmaData.criadoEm = new Date().toISOString();
+        data.turmas.push(turmaData);
+      }
+
+      saveData(data);
+      closeModal();
+    });
+
+    function editTurma(id) { openModal(id); }
+    function deleteTurma(id) {
+      if (!confirm('Tem certeza que deseja excluir esta turma?')) return;
+      const data = loadData();
+      data.turmas = data.turmas.filter(t => t.id !== id);
+      saveData(data);
+    }
+
+    // ===== EVENTS =====
+    $('#searchInput').addEventListener('input', renderTurmas);
+    $('#levelFilter').addEventListener('change', renderTurmas);
+    $('#statusFilter').addEventListener('change', renderTurmas);
+    document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModal(); });
+    $('#turmaModal').addEventListener('click', (e) => { if(e.target === $('#turmaModal')) closeModal(); });
+
+    // ===== INIT =====
+    document.addEventListener('DOMContentLoaded', () => {
+      $('#year').textContent = new Date().getFullYear();
+      lucide.createIcons();
+      renderTurmas();
+    });
+  </script>
+</body>
+</html>
