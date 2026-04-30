@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Financeiro — Caderno Online</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238b5cf6'><path d='M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25'/></svg>">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            background: 'hsl(var(--background))',
+            foreground: 'hsl(var(--foreground))',
+            card: 'hsl(var(--card))',
+            muted: 'hsl(var(--muted))',
+            'muted-foreground': 'hsl(var(--muted-foreground))',
+            border: 'hsl(var(--border))',
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    :root {
+      --background: 0 0% 100%; --foreground: 222.2 84% 4.9%;
+      --card: 0 0% 100%; --muted: 210 40% 96.1%; --muted-foreground: 215.4 16.3% 46.9%;
+      --border: 214.3 31.8% 91.4%;
+    }
+    .dark {
+      --background: 222.2 84% 4.9%; --foreground: 210 40% 98%;
+      --card: 222.2 84% 4.9%; --muted: 217.2 32.6% 17.5%; --muted-foreground: 215 20.2% 65.1%;
+      --border: 217.2 32.6% 17.5%;
+    }
+    body { font-family: system-ui, -apple-system, sans-serif; }
+    .modal { opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .modal.open { opacity: 1; pointer-events: auto; }
+  </style>
+</head>
+<body class="bg-background text-foreground min-h-screen transition-colors duration-300">
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="index.html" class="h-9 w-9 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center hover:opacity-90 transition">
+          <i data-lucide="book-open" class="h-5 w-5 text-white"></i>
+        </a>
+        <h1 class="text-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">Caderno Online</h1>
+      </div>
+      <button id="themeToggle" class="inline-flex items-center justify-center size-9 rounded-full bg-muted hover:bg-accent transition focus:outline-none focus:ring-2 focus:ring-purple-500/50" aria-label="Alternar tema">
+        <i data-lucide="sun" class="h-5 w-5 transition-all dark:rotate-90 dark:opacity-0"></i>
+        <i data-lucide="moon" class="h-5 w-5 transition-all -rotate-90 opacity-0 dark:rotate-0 dark:opacity-100 absolute"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <div>
+        <h2 class="text-2xl font-bold flex items-center gap-2">
+          <i data-lucide="wallet" class="h-6 w-6 text-purple-500"></i>
+          Controle Financeiro
+        </h2>
+        <p class="text-muted-foreground text-sm mt-1">Registre pagamentos de alunos e despesas</p>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="openModal('entrada')" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition">
+          <i data-lucide="plus" class="h-4 w-4"></i> Nova Entrada
+        </button>
+        <button onclick="openModal('saida')" class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition">
+          <i data-lucide="minus" class="h-4 w-4"></i> Nova Saída
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div class="bg-card rounded-xl border p-6">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
+            <i data-lucide="trending-up" class="h-5 w-5 text-green-600"></i>
+          </div>
+          <span class="text-sm font-medium text-muted-foreground">Total Entradas</span>
+        </div>
+        <p class="text-2xl font-bold text-green-600" id="total-entradas">R$ 0,00</p>
+      </div>
+      <div class="bg-card rounded-xl border p-6">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="p-2 rounded-lg bg-red-100 dark:bg-red-900/30">
+            <i data-lucide="trending-down" class="h-5 w-5 text-red-600"></i>
+          </div>
+          <span class="text-sm font-medium text-muted-foreground">Total Saídas</span>
+        </div>
+        <p class="text-2xl font-bold text-red-600" id="total-saidas">R$ 0,00</p>
+      </div>
+      <div class="bg-card rounded-xl border p-6">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+            <i data-lucide="wallet" class="h-5 w-5 text-purple-600"></i>
+          </div>
+          <span class="text-sm font-medium text-muted-foreground">Saldo Atual</span>
+        </div>
+        <p class="text-2xl font-bold text-purple-600" id="total-saldo">R$ 0,00</p>
+      </div>
+    </div>
+
+    <!-- Transactions List -->
+    <div class="bg-card rounded-xl border overflow-hidden">
+      <div class="p-4 border-b flex justify-between items-center">
+        <h3 class="font-semibold">Histórico de Transações</h3>
+        <button onclick="clearAll()" class="text-xs text-red-500 hover:text-red-600 hover:underline">Limpar Tudo</button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+          <thead class="text-xs text-muted-foreground uppercase bg-muted/50">
+            <tr>
+              <th class="px-6 py-3">Data</th>
+              <th class="px-6 py-3">Descrição</th>
+              <th class="px-6 py-3">Tipo</th>
+              <th class="px-6 py-3 text-right">Valor</th>
+              <th class="px-6 py-3 text-center">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="transactionsBody">
+            <!-- Rows injected via JS -->
+          </tbody>
+        </table>
+        <div id="emptyTransactions" class="hidden py-8 text-center text-muted-foreground">
+          Nenhuma transação registrada ainda.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL -->
+  <div id="transactionModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div class="bg-card rounded-xl border w-full max-w-md p-6 shadow-xl">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="modalTitle" class="text-lg font-semibold">Nova Transação</h3>
+        <button onclick="closeModal()" class="p-1 hover:bg-muted rounded-full transition"><i data-lucide="x" class="h-5 w-5"></i></button>
+      </div>
+      <form id="transactionForm" class="space-y-4">
+        <input type="hidden" id="transactionType">
+        <div>
+          <label class="block text-sm font-medium mb-1">Descrição *</label>
+          <input type="text" id="descricao" required class="w-full px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-purple-500/50" placeholder="Ex: Mensalidade João - Maio">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">Valor (R$) *</label>
+            <input type="number" id="valor" step="0.01" required class="w-full px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-purple-500/50" placeholder="0,00">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Data</label>
+            <input type="date" id="data" class="w-full px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-purple-500/50">
+          </div>
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border rounded-lg hover:bg-muted transition">Cancelar</button>
+          <button type="submit" class="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="mt-auto border-t bg-background/80 backdrop-blur-md py-4">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-muted-foreground">
+      © <span id="year"></span> Caderno Online — Plataforma de Ensino de Idiomas
+    </div>
+  </footer>
+
+  <script>
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+    const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
+    const formatCurrency = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+    const formatDate = (dateStr) => new Date(dateStr + 'T12:00:00').toLocaleDateString('pt-BR');
+
+    // THEME
+    const themeToggle = $('#themeToggle');
+    const html = document.documentElement;
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) html.classList.add('dark');
+    themeToggle.addEventListener('click', () => {
+      html.classList.toggle('dark');
+      localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    // DATA
+    const defaultData = { financeiro: { entradas: 0, saidas: 0 }, transacoes: [] };
+    function loadData() {
+      const stored = localStorage.getItem('cadernoOnlineData');
+      return stored ? JSON.parse(stored) : defaultData;
+    }
+    function saveData(data) {
+      localStorage.setItem('cadernoOnlineData', JSON.stringify(data));
+      renderTransactions();
+    }
+
+    // RENDER
+    function renderTransactions() {
+      const data = loadData();
+      const tbody = $('#transactionsBody');
+      const emptyEl = $('#emptyTransactions');
+      
+      // Sort by date desc
+      const sorted = [...data.transacoes].sort((a, b) => new Date(b.data) - new Date(a.data));
+      
+      if (sorted.length === 0) {
+        tbody.innerHTML = '';
+        emptyEl.classList.remove('hidden');
+      } else {
+        emptyEl.classList.add('hidden');
+        tbody.innerHTML = sorted.map(t => `
+          <tr class="bg-card border-b hover:bg-muted/50 transition">
+            <td class="px-6 py-4 font-medium">${formatDate(t.data)}</td>
+            <td class="px-6 py-4">${t.descricao}</td>
+            <td class="px-6 py-4">
+              <span class="px-2 py-1 text-xs font-medium rounded-full ${t.tipo === 'entrada' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}">
+                ${t.tipo === 'entrada' ? 'Entrada' : 'Saída'}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-right font-bold ${t.tipo === 'entrada' ? 'text-green-600' : 'text-red-600'}">
+              ${t.tipo === 'entrada' ? '+' : '-'} ${formatCurrency(t.valor)}
+            </td>
+            <td class="px-6 py-4 text-center">
+              <button onclick="deleteTransaction('${t.id}')" class="text-red-500 hover:text-red-700 transition"><i data-lucide="trash-2" class="h-4 w-4"></i></button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      // Update stats
+      let totalEntradas = 0, totalSaidas = 0;
+      data.transacoes.forEach(t => {
+        if (t.tipo === 'entrada') totalEntradas += t.valor;
+        else totalSaidas += t.valor;
+      });
+      
+      $('#total-entradas').textContent = formatCurrency(totalEntradas);
+      $('#total-saidas').textContent = formatCurrency(totalSaidas);
+      $('#total-saldo').textContent = formatCurrency(totalEntradas - totalSaidas);
+      
+      lucide.createIcons();
+    }
+
+    // MODAL
+    function openModal(tipo) {
+      $('#transactionModal').classList.add('open');
+      $('#modalTitle').textContent = tipo === 'entrada' ? 'Nova Entrada' : 'Nova Saída';
+      $('#transactionType').value = tipo;
+      $('#transactionForm').reset();
+      $('#data').value = new Date().toISOString().split('T')[0];
+    }
+    function closeModal() { $('#transactionModal').classList.remove('open'); }
+
+    $('#transactionForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const data = loadData();
+      const newTrans = {
+        id: generateId(),
+        tipo: $('#transactionType').value,
+        descricao: $('#descricao').value.trim(),
+        valor: parseFloat($('#valor').value),
+        data: $('#data').value
+      };
+      data.transacoes.push(newTrans);
+      saveData(data);
+      closeModal();
+    });
+
+    function deleteTransaction(id) {
+      if (!confirm('Excluir esta transação?')) return;
+      const data = loadData();
+      data.transacoes = data.transacoes.filter(t => t.id !== id);
+      saveData(data);
+    }
+
+    function clearAll() {
+      if (!confirm('Tem certeza que deseja apagar TODO o histórico financeiro?')) return;
+      const data = loadData();
+      data.transacoes = [];
+      saveData(data);
+    }
+
+    // EVENTS
+    document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModal(); });
+    $('#transactionModal').addEventListener('click', (e) => { if(e.target === $('#transactionModal')) closeModal(); });
+
+    // INIT
+    document.addEventListener('DOMContentLoaded', () => {
+      $('#year').textContent = new Date().getFullYear();
+      lucide.createIcons();
+      renderTransactions();
+    });
+  </script>
+</body>
+</html>
