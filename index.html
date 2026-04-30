@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Caderno Online — Plataforma de Ensino de Idiomas</title>
+  <meta name="description" content="Gestão de alunos, turmas, aulas CEFR e financeiro para professores de idiomas">
+  
+  <!-- Ícone -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238b5cf6'><path d='M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25'/></svg>">
+  
+  <!-- Tailwind CSS via CDN (para desenvolvimento rápido) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            background: 'hsl(var(--background))',
+            foreground: 'hsl(var(--foreground))',
+            card: 'hsl(var(--card))',
+            'card-foreground': 'hsl(var(--card-foreground))',
+            muted: 'hsl(var(--muted))',
+            'muted-foreground': 'hsl(var(--muted-foreground))',
+            border: 'hsl(var(--border))',
+          },
+          animation: {
+            'fade-in': 'fade-in 0.4s ease-out',
+            'pulse-slow': 'pulse-slow 3s ease-in-out infinite',
+          },
+          keyframes: {
+            'fade-in': {
+              '0%': { opacity: '0', transform: 'translateY(10px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' }
+            },
+            'pulse-slow': {
+              '0%, 100%': { opacity: '1' },
+              '50%': { opacity: '0.8' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Ícones Lucide -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Estilos personalizados -->
+  <style>
+    :root {
+      --background: 0 0% 100%;
+      --foreground: 222.2 84% 4.9%;
+      --card: 0 0% 100%;
+      --card-foreground: 222.2 84% 4.9%;
+      --muted: 210 40% 96.1%;
+      --muted-foreground: 215.4 16.3% 46.9%;
+      --border: 214.3 31.8% 91.4%;
+    }
+    .dark {
+      --background: 222.2 84% 4.9%;
+      --foreground: 210 40% 98%;
+      --card: 222.2 84% 4.9%;
+      --card-foreground: 210 40% 98%;
+      --muted: 217.2 32.6% 17.5%;
+      --muted-foreground: 215 20.2% 65.1%;
+      --border: 217.2 32.6% 17.5%;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: system-ui, -apple-system, sans-serif; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fade-in 0.4s ease-out; }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
+    .theme-toggle:hover { transform: scale(1.1); }
+    @media (max-width: 640px) {
+      .tabs-grid { grid-template-columns: repeat(4, 1fr) !important; }
+      .tabs-grid button span { display: none; }
+      .tabs-grid button { padding: 0.5rem; }
+    }
+  </style>
+</head>
+<body class="bg-background text-foreground min-h-screen transition-colors duration-300">
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <!-- Logo -->
+      <div class="flex items-center gap-3">
+        <div class="h-9 w-9 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center animate-pulse-slow">
+          <i data-lucide="book-open" class="h-5 w-5 text-white"></i>
+        </div>
+        <h1 class="text-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+          Caderno Online
+        </h1>
+      </div>
+
+      <!-- Toggle Tema -->
+      <button id="themeToggle" class="theme-toggle inline-flex items-center justify-center size-9 rounded-full bg-muted hover:bg-accent transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500/50" aria-label="Alternar tema">
+        <i data-lucide="sun" class="h-5 w-5 transition-all dark:rotate-90 dark:opacity-0"></i>
+        <i data-lucide="moon" class="h-5 w-5 transition-all -rotate-90 opacity-0 dark:rotate-0 dark:opacity-100 absolute"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
+    
+    <!-- TABS NAVIGATION -->
+    <div class="flex flex-col gap-4 w-full mb-8">
+      <div role="tablist" class="tabs-grid bg-muted/50 rounded-xl p-1 grid grid-cols-4 sm:grid-cols-7 gap-1">
+        <button role="tab" data-tab="home" class="tab-btn active inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-purple-500/50 bg-background shadow-sm text-foreground">
+          <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
+          <span>Home</span>
+        </button>
+        <button role="tab" data-tab="alunos" class="tab-btn inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all text-muted-foreground hover:text-foreground hover:bg-muted/80 focus:outline-none focus:ring-2 focus:ring-purple-500/50">
+          <i data-lucide="users" class="h-4 w-4"></i>
+          <span>Alunos</span>
+        </button>
+        <button role="tab" data-tab="turmas" class="tab-btn inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all text-muted-foreground hover:text-foreground hover:bg-muted/80 focus:outline-none focus:ring-2 focus:ring-purple-500/50">
+          <i data-lucide="graduation-cap" class="h-4 w-4"></i>
+          <span>Turmas</span>
+        </button>
+        <button role="tab" data-tab="cefr" class="tab-btn inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all text-muted-foreground hover:text-foreground hover:bg-muted/80 focus:outline-none focus:ring-2 focus:ring-purple-500/50">
+          <i data-lucide="book-marked" class="h-4 w-4"></i>
+          <span>CEFR</span>
+        </button>
+        <button role="tab" data-tab="material" class="tab-btn inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all text-muted-foreground hover:text-foreground hover:bg-muted/80 focus:outline-none focus:ring-2 focus:ring-purple-500/50">
+          <i data-lucide="link-2" class="h-4 w-4"></i>
+          <span>Material</span>
+        </button>
+        <button role="tab" data-tab="agenda" class="tab-btn inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all text-muted-foreground hover:text-foreground hover:bg-muted/80 focus:outline-none focus:ring-2 focus:ring-purple-500/50">
+          <i data-lucide="calendar" class="h-4 w-4"></i>
+          <span>Agenda</span>
+        </button>
+        <button role="tab" data-tab="financeiro" class="tab-btn inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all text-muted-foreground hover:text-foreground hover:bg-muted/80 focus:outline-none focus:ring-2 focus:ring-purple-500/50">
+          <i data-lucide="wallet" class="h-4 w-4"></i>
+          <span>Financeiro</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB CONTENT: HOME -->
+    <div id="home" class="tab-content active space-y-6">
+      
+      <!-- Stat Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div class="stat-card bg-card rounded-xl border p-4 transition-all duration-300 cursor-default">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+              <i data-lucide="users" class="h-5 w-5 text-white"></i>
+            </div>
+            <div>
+              <p class="text-xs text-muted-foreground">Alunos</p>
+              <p class="text-2xl font-bold" id="count-alunos">0</p>
+            </div>
+          </div>
+        </div>
+        <div class="stat-card bg-card rounded-xl border p-4 transition-all duration-300 cursor-default">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+              <i data-lucide="graduation-cap" class="h-5 w-5 text-white"></i>
+            </div>
+            <div>
+              <p class="text-xs text-muted-foreground">Turmas</p>
+              <p class="text-2xl font-bold" id="count-turmas">0</p>
+            </div>
+          </div>
+        </div>
+        <div class="stat-card bg-card rounded-xl border p-4 transition-all duration-300 cursor-default">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-green-500 to-teal-500 flex items-center justify-center">
+              <i data-lucide="book-marked" class="h-5 w-5 text-white"></i>
+            </div>
+            <div>
+              <p class="text-xs text-muted-foreground">Aulas CEFR</p>
+              <p class="text-2xl font-bold" id="count-cefr">0</p>
+            </div>
+          </div>
+        </div>
+        <div class="stat-card bg-card rounded-xl border p-4 transition-all duration-300 cursor-default">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+              <i data-lucide="calendar" class="h-5 w-5 text-white"></i>
+            </div>
+            <div>
+              <p class="text-xs text-muted-foreground">Agendadas</p>
+              <p class="text-2xl font-bold" id="count-agenda">0</p>
+            </div>
+          </div>
+        </div>
+        <div class="stat-card bg-card rounded-xl border p-4 transition-all duration-300 cursor-default">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-green-500 to-teal-500 flex items-center justify-center">
+              <i data-lucide="trending-up" class="h-5 w-5 text-white"></i>
+            </div>
+            <div>
+              <p class="text-xs text-muted-foreground">Concluídas</p>
+              <p class="text-2xl font-bold text-green-600 dark:text-green-400" id="count-concluidas">0</p>
+            </div>
+          </div>
+        </div>
+        <div class="stat-card bg-card rounded-xl border p-4 transition-all duration-300 cursor-default">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+              <i data-lucide="chart-column" class="h-5 w-5 text-white"></i>
+            </div>
+            <div>
+              <p class="text-xs text-muted-foreground">Em Andamento</p>
+              <p class="text-2xl font-bold text-amber-600 dark:text-amber-400" id="count-andamento">0</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Financial Summary -->
+      <div class="bg-card rounded-xl border p-6 hover:shadow-md transition-shadow">
+        <h3 class="font-semibold text-base flex items-center gap-2 mb-4">
+          <i data-lucide="wallet" class="h-4 w-4 text-purple-500"></i>
+          Resumo Financeiro
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="p-4 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
+            <div class="flex items-center gap-2 mb-1">
+              <i data-lucide="arrow-up-right" class="h-4 w-4 text-green-600"></i>
+              <span class="text-sm font-medium text-green-700 dark:text-green-400">Entradas</span>
+            </div>
+            <p class="text-2xl font-bold text-green-700 dark:text-green-400">R$ <span id="finance-entradas">0,00</span></p>
+          </div>
+          <div class="p-4 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
+            <div class="flex items-center gap-2 mb-1">
+              <i data-lucide="arrow-down-right" class="h-4 w-4 text-red-600"></i>
+              <span class="text-sm font-medium text-red-700 dark:text-red-400">Saídas</span>
+            </div>
+            <p class="text-2xl font-bold text-red-700 dark:text-red-400">R$ <span id="finance-saidas">0,00</span></p>
+          </div>
+          <div class="p-4 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
+            <div class="flex items-center gap-2 mb-1">
+              <i data-lucide="dollar-sign" class="h-4 w-4 text-purple-600"></i>
+              <span class="text-sm font-medium text-purple-700 dark:text-purple-400">Saldo</span>
+            </div>
+            <p class="text-2xl font-bold text-purple-700 dark:text-purple-400">R$ <span id="finance-saldo">0,00</span></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- CEFR Distribution -->
+      <div class="bg-card rounded-xl border p-6 hover:shadow-md transition-shadow">
+        <h3 class="font-semibold text-base flex items-center gap-2 mb-4">
+          <i data-lucide="chart-column" class="h-4 w-4 text-purple-500"></i>
+          Distribuição CEFR
+        </h3>
+        <div class="space-y-3" id="cefr-bars">
+          <!-- Bars injected by JS -->
+        </div>
+      </div>
+
+      <!-- Recent Students & Upcoming Classes -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-card rounded-xl border p-6 hover:shadow-md transition-shadow">
+          <h3 class="font-semibold text-base flex items-center gap-2 mb-4">
+            <i data-lucide="users" class="h-4 w-4 text-purple-500"></i>
+            Alunos Recentes
+          </h3>
+          <p class="text-sm text-muted-foreground text-center py-6" id="recent-students-msg">
+            Nenhum aluno cadastrado ainda.
+          </p>
+          <ul id="recent-students-list" class="space-y-2 hidden"></ul>
+        </div>
+        <div class="bg-card rounded-xl border p-6 hover:shadow-md transition-shadow">
+          <h3 class="font-semibold text-base flex items-center gap-2 mb-4">
+            <i data-lucide="calendar" class="h-4 w-4 text-purple-500"></i>
+            Próximas Aulas
+          </h3>
+          <p class="text-sm text-muted-foreground text-center py-6" id="upcoming-classes-msg">
+            Nenhuma aula agendada.
+          </p>
+          <ul id="upcoming-classes-list" class="space-y-2 hidden"></ul>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB CONTENT: PLACEHOLDERS (will be built next) -->
+    <div id="alunos" class="tab-content">
+      <div class="flex flex-col items-center justify-center py-20 text-center">
+        <div class="h-16 w-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center mb-4">
+          <i data-lucide="users" class="h-8 w-8 text-purple-500"></i>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">Alunos</h3>
+        <p class="text-muted-foreground max-w-sm">Em breve: cadastre alunos, acompanhe progresso e gere relatórios.</p>
+      </div>
+    </div>
+    <div id="turmas" class="tab-content">
+      <div class="flex flex-col items-center justify-center py-20 text-center">
+        <div class="h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center mb-4">
+          <i data-lucide="graduation-cap" class="h-8 w-8 text-blue-500"></i>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">Turmas</h3>
+        <p class="text-muted-foreground max-w-sm">Em breve: crie turmas, defina horários e vincule alunos.</p>
+      </div>
+    </div>
+    <div id="cefr" class="tab-content">
+      <div class="flex flex-col items-center justify-center py-20 text-center">
+        <div class="h-16 w-16 rounded-2xl bg-gradient-to-br from-green-500/20 to-teal-500/20 flex items-center justify-center mb-4">
+          <i data-lucide="book-marked" class="h-8 w-8 text-green-500"></i>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">Aulas CEFR</h3>
+        <p class="text-muted-foreground max-w-sm">Em breve: lessons A1-C2 com áudio, exercícios e progresso.</p>
+      </div>
+    </div>
+    <div id="material" class="tab-content">
+      <div class="flex flex-col items-center justify-center py-20 text-center">
+        <div class="h-16 w-16 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center mb-4">
+          <i data-lucide="link-2" class="h-8 w-8 text-amber-500"></i>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">Material</h3>
+        <p class="text-muted-foreground max-w-sm">Em breve: biblioteca de recursos, links e arquivos para suas aulas.</p>
+      </div>
+    </div>
+    <div id="agenda" class="tab-content">
+      <div class="flex flex-col items-center justify-center py-20 text-center">
+        <div class="h-16 w-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center mb-4">
+          <i data-lucide="calendar" class="h-8 w-8 text-purple-500"></i>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">Agenda</h3>
+        <p class="text-muted-foreground max-w-sm">Em breve: calendário interativo com lembretes e confirmações.</p>
+      </div>
+    </div>
+    <div id="financeiro" class="tab-content">
+      <div class="flex flex-col items-center justify-center py-20 text-center">
+        <div class="h-16 w-16 rounded-2xl bg-gradient-to-br from-green-500/20 to-teal-500/20 flex items-center justify-center mb-4">
+          <i data-lucide="wallet" class="h-8 w-8 text-green-500"></i>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">Financeiro</h3>
+        <p class="text-muted-foreground max-w-sm">Em breve: controle de pagamentos, recibos e relatórios mensais.</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="mt-auto border-t bg-background/80 backdrop-blur-md py-4">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-muted-foreground">
+      © <span id="year"></span> Caderno Online — Plataforma de Ensino de Idiomas
+    </div>
+  </footer>
+
+  <!-- JAVASCRIPT -->
+  <script>
+    // ====== UTILS ======
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+    const formatCurrency = (num) => new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(num);
+
+    // ====== THEME TOGGLE ======
+    const themeToggle = $('#themeToggle');
+    const html = document.documentElement;
+    
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      html.classList.add('dark');
+    }
+    
+    themeToggle.addEventListener('click', () => {
+      html.classList.toggle('dark');
+      localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    // ====== TABS NAVIGATION ======
+    const tabBtns = $$('.tab-btn');
+    const tabContents = $$('.tab-content');
+    
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Remove active from all
+        tabBtns.forEach(b => {
+          b.classList.remove('active', 'bg-background', 'shadow-sm', 'text-foreground');
+          b.classList.add('text-muted-foreground');
+        });
+        tabContents.forEach(c => c.classList.remove('active'));
+        
+        // Activate selected
+        btn.classList.add('active', 'bg-background', 'shadow-sm', 'text-foreground');
+        btn.classList.remove('text-muted-foreground');
+        $(`#${btn.dataset.tab}`).classList.add('active');
+        
+        // Re-render icons for Lucide (needed after DOM changes)
+        lucide.createIcons();
+      });
+    });
+
+    // ====== DATA & STORAGE (localStorage) ======
+    const defaultData = {
+      alunos: [],
+      turmas: [],
+      cefr: { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 },
+      financeiro: { entradas: 0, saidas: 0 },
+      agenda: []
+    };
+
+    function loadData() {
+      const stored = localStorage.getItem('cadernoOnlineData');
+      return stored ? JSON.parse(stored) : defaultData;
+    }
+
+    function saveData(data) {
+      localStorage.setItem('cadernoOnlineData', JSON.stringify(data));
+      renderDashboard();
+    }
+
+    // ====== RENDER DASHBOARD ======
+    function renderDashboard() {
+      const data = loadData();
+      
+      // Update stats
+      $('#count-alunos').textContent = data.alunos.length;
+      $('#count-turmas').textContent = data.turmas.length;
+      const totalCefr = Object.values(data.cefr).reduce((a,b) => a+b, 0);
+      $('#count-cefr').textContent = totalCefr;
+      $('#count-agenda').textContent = data.agenda.length;
+      
+      // Financial
+      const saldo = data.financeiro.entradas - data.financeiro.saidas;
+      $('#finance-entradas').textContent = formatCurrency(data.financeiro.entradas);
+      $('#finance-saidas').textContent = formatCurrency(data.financeiro.saidas);
+      $('#finance-saldo').textContent = formatCurrency(saldo);
+      
+      // CEFR bars
+      const cefrContainer = $('#cefr-bars');
+      cefrContainer.innerHTML = '';
+      const colors = { A1: 'bg-red-500', A2: 'bg-orange-500', B1: 'bg-yellow-500', B2: 'bg-lime-500', C1: 'bg-green-500', C2: 'bg-emerald-500' };
+      
+      Object.entries(data.cefr).forEach(([level, count]) => {
+        const pct = totalCefr > 0 ? (count / totalCefr) * 100 : 0;
+        cefrContainer.innerHTML += `
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-semibold w-8 shrink-0">${level}</span>
+            <div class="flex-1 bg-muted rounded-full h-3 overflow-hidden">
+              <div class="${colors[level]} h-full rounded-full transition-all duration-700" style="width: ${pct}%"></div>
+            </div>
+            <span class="text-xs w-6 text-right font-medium shrink-0">${count}</span>
+          </div>
+        `;
+      });
+      
+      // Recent students & upcoming classes (mock)
+      if (data.alunos.length > 0) {
+        $('#recent-students-msg').classList.add('hidden');
+        const list = $('#recent-students-list');
+        list.classList.remove('hidden');
+        list.innerHTML = data.alunos.slice(-3).reverse().map(a => `
+          <li class="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
+            <div class="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold">
+              ${a.nome.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <p class="text-sm font-medium">${a.nome}</p>
+              <p class="text-xs text-muted-foreground">${a.nivel || 'Nível não definido'}</p>
+            </div>
+          </li>
+        `).join('');
+      }
+      
+      if (data.agenda.length > 0) {
+        $('#upcoming-classes-msg').classList.add('hidden');
+        const list = $('#upcoming-classes-list');
+        list.classList.remove('hidden');
+        list.innerHTML = data.agenda.slice(0, 3).map(a => `
+          <li class="p-3 rounded-lg border bg-card">
+            <p class="text-sm font-medium">${a.titulo}</p>
+            <p class="text-xs text-muted-foreground">${new Date(a.data).toLocaleDateString('pt-BR')} • ${a.hora}</p>
+          </li>
+        `).join('');
+      }
+      
+      // Re-render icons
+      lucide.createIcons();
+    }
+
+    // ====== INIT ======
+    document.addEventListener('DOMContentLoaded', () => {
+      $('#year').textContent = new Date().getFullYear();
+      lucide.createIcons();
+      renderDashboard();
+      
+      // Demo: add sample data if empty (remove in production)
+      const data = loadData();
+      if (data.alunos.length === 0) {
+        // Uncomment below to add demo data for testing
+        /*
+        data.alunos = [
+          { nome: 'Ana Silva', nivel: 'A2', dataCadastro: new Date().toISOString() },
+          { nome: 'Bruno Costa', nivel: 'B1', dataCadastro: new Date().toISOString() }
+        ];
+        data.cefr.A2 = 1; data.cefr.B1 = 1;
+        data.financeiro.entradas = 450.00;
+        saveData(data);
+        */
+      }
+    });
+  </script>
+</body>
+</html>
