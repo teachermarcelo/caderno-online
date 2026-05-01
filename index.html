@@ -1,151 +1,305 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Caderno Online - Dashboard</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238b5cf6'><path d='M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25'/></svg>">
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Configuração Tailwind -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#8b5cf6',
+                        secondary: '#ec4899',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .dark body {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        
+        .dark .glass-effect {
+            background: rgba(15, 23, 42, 0.95);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .floating-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .floating-btn:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
+        }
+        
+        .nav-item {
+            transition: all 0.3s ease;
+        }
+        
+        .nav-item:hover {
+            transform: translateY(-2px);
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .dark .stat-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="text-gray-800 dark:text-gray-200 transition-colors duration-300">
 
-    <!-- Navegação -->
-    <nav class="bg-white border-b sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center gap-2">
-                    <div class="bg-gradient-to-br from-purple-600 to-pink-600 p-2 rounded-lg">
+    <!-- Header -->
+    <header class="glass-effect sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
                         <i data-lucide="book-open" class="w-6 h-6 text-white"></i>
                     </div>
-                    <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                        Caderno Online
-                    </h1>
+                    <h1 class="text-2xl font-bold gradient-text">Caderno Online</h1>
                 </div>
-                <div class="flex gap-2">
-                    <a href="index.html" class="px-4 py-2 rounded-lg hover:bg-gray-100"><i data-lucide="home" class="w-5 h-5"></i></a>
-                    <a href="alunos.html" class="px-4 py-2 rounded-lg hover:bg-gray-100"><i data-lucide="users" class="w-5 h-5"></i></a>
-                    <a href="turmas.html" class="px-4 py-2 rounded-lg hover:bg-gray-100"><i data-lucide="graduation-cap" class="w-5 h-5"></i></a>
-                    <a href="cefr.html" class="px-4 py-2 rounded-lg hover:bg-gray-100"><i data-lucide="file-text" class="w-5 h-5"></i></a>
-                    <a href="material.html" class="px-4 py-2 rounded-lg hover:bg-gray-100"><i data-lucide="link" class="w-5 h-5"></i></a>
-                    <a href="agenda.html" class="px-4 py-2 rounded-lg hover:bg-gray-100"><i data-lucide="calendar" class="w-5 h-5"></i></a>
-                    <a href="financeiro.html" class="px-4 py-2 rounded-lg hover:bg-gray-100"><i data-lucide="wallet" class="w-5 h-5"></i></a>
-                </div>
+                
+                <!-- Theme Toggle -->
+                <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 shadow-md">
+                    <i data-lucide="sun" class="w-5 h-5 hidden dark:block text-yellow-400"></i>
+                    <i data-lucide="moon" class="w-5 h-5 block dark:hidden text-gray-600"></i>
+                </button>
             </div>
         </div>
-    </nav>
+    </header>
 
-    <!-- Tabs -->
-    <div class="max-w-7xl mx-auto px-4 py-6">
-        <div class="bg-gray-100 p-1 rounded-xl flex gap-1 mb-6">
-            <button onclick="showTab('resumo')" class="tab-btn active flex-1 py-2 px-4 rounded-lg text-sm font-medium transition">📊 Resumo</button>
-            <button onclick="showTab('alunos')" class="tab-btn flex-1 py-2 px-4 rounded-lg text-sm font-medium transition">👥 Alunos</button>
-            <button onclick="showTab('turmas')" class="tab-btn flex-1 py-2 px-4 rounded-lg text-sm font-medium transition">🎓 Turmas</button>
-            <button onclick="showTab('financeiro')" class="tab-btn flex-1 py-2 px-4 rounded-lg text-sm font-medium transition">💰 Financeiro</button>
-            <button onclick="showTab('agenda')" class="tab-btn flex-1 py-2 px-4 rounded-lg text-sm font-medium transition">📅 Agenda</button>
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Welcome Section -->
+        <div class="mb-8 text-center">
+            <h2 class="text-4xl font-bold text-white mb-2 drop-shadow-lg">Bem-vindo ao Seu Sistema</h2>
+            <p class="text-white/90 text-lg">Gerencie alunos, turmas e finanças em um só lugar</p>
         </div>
 
-        <!-- TAB: RESUMO -->
-        <div id="tab-resumo" class="tab-content active space-y-6">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-white p-4 rounded-xl border shadow-sm">
-                    <div class="flex items-center gap-3">
-                        <div class="p-3 bg-purple-100 rounded-lg"><i data-lucide="users" class="w-6 h-6 text-purple-600"></i></div>
-                        <div><p class="text-sm text-gray-500">Alunos</p><p class="text-2xl font-bold" id="dash-alunos">0</p></div>
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Alunos Card -->
+            <div class="stat-card rounded-2xl p-6 card-hover cursor-pointer" onclick="navigateTo('alunos.html')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                        <i data-lucide="users" class="w-6 h-6 text-purple-600 dark:text-purple-400"></i>
                     </div>
+                    <span class="text-3xl font-bold text-gray-800 dark:text-white" id="count-alunos">0</span>
                 </div>
-                <div class="bg-white p-4 rounded-xl border shadow-sm">
-                    <div class="flex items-center gap-3">
-                        <div class="p-3 bg-blue-100 rounded-lg"><i data-lucide="graduation-cap" class="w-6 h-6 text-blue-600"></i></div>
-                        <div><p class="text-sm text-gray-500">Turmas</p><p class="text-2xl font-bold" id="dash-turmas">0</p></div>
-                    </div>
-                </div>
-                <div class="bg-white p-4 rounded-xl border shadow-sm">
-                    <div class="flex items-center gap-3">
-                        <div class="p-3 bg-green-100 rounded-lg"><i data-lucide="file-text" class="w-6 h-6 text-green-600"></i></div>
-                        <div><p class="text-sm text-gray-500">Aulas CEFR</p><p class="text-2xl font-bold" id="dash-cefr">0</p></div>
-                    </div>
-                </div>
-                <div class="bg-white p-4 rounded-xl border shadow-sm">
-                    <div class="flex items-center gap-3">
-                        <div class="p-3 bg-purple-100 rounded-lg"><i data-lucide="wallet" class="w-6 h-6 text-purple-600"></i></div>
-                        <div><p class="text-sm text-gray-500">Saldo</p><p class="text-2xl font-bold text-purple-600" id="dash-saldo">R$ 0</p></div>
-                    </div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 font-medium">Total de Alunos</p>
+                <div class="mt-3 flex items-center text-purple-600 dark:text-purple-400 text-sm font-medium">
+                    <span>Ver detalhes</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-white p-6 rounded-xl border shadow-sm">
-                    <h3 class="font-semibold mb-4 flex items-center gap-2"><i data-lucide="users" class="w-5 h-5 text-purple-600"></i> Últimos Alunos</h3>
-                    <div id="dash-ultimos-alunos" class="space-y-2"></div>
-                </div>
-                <div class="bg-white p-6 rounded-xl border shadow-sm">
-                    <h3 class="font-semibold mb-4 flex items-center gap-2"><i data-lucide="calendar" class="w-5 h-5 text-purple-600"></i> Próximas Aulas</h3>
-                    <div id="dash-proximas-aulas" class="space-y-2"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB: ALUNOS -->
-        <div id="tab-alunos" class="tab-content">
-            <div class="bg-white rounded-xl border shadow-sm p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold">Lista de Alunos</h2>
-                    <a href="alunos.html" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">+ Novo Aluno</a>
-                </div>
-                <div id="lista-alunos-dashboard" class="space-y-2"></div>
-            </div>
-        </div>
-
-        <!-- TAB: TURMAS -->
-        <div id="tab-turmas" class="tab-content">
-            <div class="bg-white rounded-xl border shadow-sm p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold">Turmas Cadastradas</h2>
-                    <a href="turmas.html" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">+ Nova Turma</a>
-                </div>
-                <div id="lista-turmas-dashboard" class="space-y-2"></div>
-            </div>
-        </div>
-
-        <!-- TAB: FINANCEIRO -->
-        <div id="tab-financeiro" class="tab-content">
-            <div class="bg-white rounded-xl border shadow-sm p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold">Movimentações Financeiras</h2>
-                    <a href="financeiro.html" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">+ Nova Entrada</a>
-                </div>
-                <div class="grid grid-cols-3 gap-4 mb-6">
-                    <div class="p-4 bg-green-50 rounded-lg border border-green-200">
-                        <p class="text-sm text-green-700">Entradas</p>
-                        <p class="text-2xl font-bold text-green-700" id="fin-entradas">R$ 0,00</p>
+            <!-- Turmas Card -->
+            <div class="stat-card rounded-2xl p-6 card-hover cursor-pointer" onclick="navigateTo('turmas.html')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                        <i data-lucide="graduation-cap" class="w-6 h-6 text-blue-600 dark:text-blue-400"></i>
                     </div>
-                    <div class="p-4 bg-red-50 rounded-lg border border-red-200">
-                        <p class="text-sm text-red-700">Saídas</p>
-                        <p class="text-2xl font-bold text-red-700" id="fin-saidas">R$ 0,00</p>
-                    </div>
-                    <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                        <p class="text-sm text-purple-700">Saldo</p>
-                        <p class="text-2xl font-bold text-purple-700" id="fin-saldo">R$ 0,00</p>
-                    </div>
+                    <span class="text-3xl font-bold text-gray-800 dark:text-white" id="count-turmas">0</span>
                 </div>
-                <div id="lista-transacoes" class="space-y-2"></div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 font-medium">Turmas Ativas</p>
+                <div class="mt-3 flex items-center text-blue-600 dark:text-blue-400 text-sm font-medium">
+                    <span>Ver detalhes</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+                </div>
+            </div>
+
+            <!-- Financeiro Card -->
+            <div class="stat-card rounded-2xl p-6 card-hover cursor-pointer" onclick="navigateTo('financeiro.html')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                        <i data-lucide="wallet" class="w-6 h-6 text-green-600 dark:text-green-400"></i>
+                    </div>
+                    <span class="text-2xl font-bold text-gray-800 dark:text-white" id="count-saldo">R$ 0</span>
+                </div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 font-medium">Saldo Atual</p>
+                <div class="mt-3 flex items-center text-green-600 dark:text-green-400 text-sm font-medium">
+                    <span>Ver financeiro</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+                </div>
+            </div>
+
+            <!-- Agenda Card -->
+            <div class="stat-card rounded-2xl p-6 card-hover cursor-pointer" onclick="navigateTo('agenda.html')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                        <i data-lucide="calendar" class="w-6 h-6 text-orange-600 dark:text-orange-400"></i>
+                    </div>
+                    <span class="text-3xl font-bold text-gray-800 dark:text-white" id="count-agenda">0</span>
+                </div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 font-medium">Aulas Hoje</p>
+                <div class="mt-3 flex items-center text-orange-600 dark:text-orange-400 text-sm font-medium">
+                    <span>Ver agenda</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+                </div>
             </div>
         </div>
 
-        <!-- TAB: AGENDA -->
-        <div id="tab-agenda" class="tab-content">
-            <div class="bg-white rounded-xl border shadow-sm p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold">Agenda de Aulas</h2>
-                    <a href="agenda.html" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700">+ Agendar Aula</a>
+        <!-- Quick Actions Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Alunos Recentes -->
+            <div class="glass-effect rounded-2xl p-6 shadow-lg">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+                        <i data-lucide="user-plus" class="w-5 h-5 text-primary"></i>
+                        Alunos Recentes
+                    </h3>
+                    <button onclick="navigateTo('alunos.html')" class="text-primary hover:text-primary/80 text-sm font-medium">
+                        Ver todos
+                    </button>
                 </div>
-                <div id="lista-agenda-dashboard" class="space-y-2"></div>
+                <div id="recent-students" class="space-y-3">
+                    <p class="text-gray-500 dark:text-gray-400 text-center py-4 text-sm">Nenhum aluno cadastrado</p>
+                </div>
+            </div>
+
+            <!-- Próximas Aulas -->
+            <div class="glass-effect rounded-2xl p-6 shadow-lg">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+                        <i data-lucide="clock" class="w-5 h-5 text-secondary"></i>
+                        Próximas Aulas
+                    </h3>
+                    <button onclick="navigateTo('agenda.html')" class="text-secondary hover:text-secondary/80 text-sm font-medium">
+                        Ver agenda
+                    </button>
+                </div>
+                <div id="upcoming-classes" class="space-y-3">
+                    <p class="text-gray-500 dark:text-gray-400 text-center py-4 text-sm">Nenhuma aula agendada</p>
+                </div>
+            </div>
+
+            <!-- Resumo Financeiro -->
+            <div class="glass-effect rounded-2xl p-6 shadow-lg">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+                        <i data-lucide="trending-up" class="w-5 h-5 text-success"></i>
+                        Resumo do Mês
+                    </h3>
+                    <button onclick="navigateTo('financeiro.html')" class="text-success hover:text-success/80 text-sm font-medium">
+                        Detalhes
+                    </button>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Entradas</span>
+                        <span class="font-semibold text-green-600 dark:text-green-400" id="monthly-income">R$ 0,00</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Saídas</span>
+                        <span class="font-semibold text-red-600 dark:text-red-400" id="monthly-expense">R$ 0,00</span>
+                    </div>
+                </div>
             </div>
         </div>
+    </main>
+
+    <!-- Floating Action Buttons -->
+    <div class="floating-btn flex flex-col gap-3">
+        <button onclick="navigateTo('alunos.html')" class="w-14 h-14 rounded-full bg-purple-600 hover:bg-purple-700 text-white shadow-lg flex items-center justify-center transition-all" title="Novo Aluno">
+            <i data-lucide="user-plus" class="w-6 h-6"></i>
+        </button>
+        <button onclick="navigateTo('turmas.html')" class="w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg flex items-center justify-center transition-all" title="Nova Turma">
+            <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+        </button>
+        <button onclick="navigateTo('financeiro.html')" class="w-14 h-14 rounded-full bg-green-600 hover:bg-green-700 text-white shadow-lg flex items-center justify-center transition-all" title="Nova Transação">
+            <i data-lucide="plus" class="w-6 h-6"></i>
+        </button>
     </div>
 
+    <!-- Footer -->
+    <footer class="glass-effect border-t border-gray-200 dark:border-gray-700 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                    © <span id="current-year"></span> Caderno Online. Todos os direitos reservados.
+                </p>
+                <div class="flex gap-4">
+                    <a href="https://github.com" target="_blank" class="text-gray-600 dark:text-gray-400 hover:text-primary transition">
+                        <i data-lucide="github" class="w-5 h-5"></i>
+                    </a>
+                    <a href="mailto:contato@caderno.online" class="text-gray-600 dark:text-gray-400 hover:text-primary transition">
+                        <i data-lucide="mail" class="w-5 h-5"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
     <script>
-        // Banco de dados unificado
+        // Banco de dados local
         const DB_KEY = 'cadernoOnlineDB';
         
         function getDB() {
@@ -156,126 +310,117 @@
                 cefr: [],
                 material: [],
                 agenda: [],
-                financeiro: { entradas: 0, saidas: 0, transacoes: [] }
+                financeiro: { transacoes: [] }
             };
         }
-
-        function saveDB(db) {
-            localStorage.setItem(DB_KEY, JSON.stringify(db));
+        
+        function saveDB(data) {
+            localStorage.setItem(DB_KEY, JSON.stringify(data));
             updateDashboard();
         }
-
-        function showTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById('tab-' + tabName).classList.add('active');
-            event.target.classList.add('active');
-            updateDashboard();
+        
+        // Navegação
+        function navigateTo(page) {
+            window.location.href = page;
         }
-
+        
+        // Atualizar Dashboard
         function updateDashboard() {
             const db = getDB();
             
-            // Atualiza contadores
-            document.getElementById('dash-alunos').textContent = db.alunos.length;
-            document.getElementById('dash-turmas').textContent = db.turmas.length;
-            document.getElementById('dash-cefr').textContent = db.cefr.length;
+            // Atualizar contadores
+            document.getElementById('count-alunos').textContent = db.alunos.length;
+            document.getElementById('count-turmas').textContent = db.turmas.length;
+            document.getElementById('count-agenda').textContent = db.agenda.length;
             
-            const saldo = db.financeiro.entradas - db.financeiro.saidas;
-            document.getElementById('dash-saldo').textContent = 'R$ ' + saldo.toFixed(2);
-            document.getElementById('fin-entradas').textContent = 'R$ ' + db.financeiro.entradas.toFixed(2);
-            document.getElementById('fin-saidas').textContent = 'R$ ' + db.financeiro.saidas.toFixed(2);
-            document.getElementById('fin-saldo').textContent = 'R$ ' + saldo.toFixed(2);
-
-            // Últimos alunos
-            const ultimosAlunos = db.alunos.slice(-5).reverse();
-            document.getElementById('dash-ultimos-alunos').innerHTML = ultimosAlunos.length ? 
-                ultimosAlunos.map(a => `
-                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                        <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold">${a.nome.charAt(0)}</div>
-                        <div><p class="font-medium">${a.nome}</p><p class="text-sm text-gray-500">${a.nivel || 'Nível não definido'}</p></div>
-                    </div>
-                `).join('') : '<p class="text-gray-400 text-center py-4">Nenhum aluno cadastrado</p>';
-
-            // Próximas aulas
-            const hoje = new Date().toISOString().split('T')[0];
-            const proximasAulas = db.agenda.filter(a => a.data >= hoje).sort((a,b) => a.data.localeCompare(b.data)).slice(0,5);
-            document.getElementById('dash-proximas-aulas').innerHTML = proximasAulas.length ?
-                proximasAulas.map(a => `
-                    <div class="p-3 bg-gray-50 rounded-lg border-l-4 border-orange-500">
-                        <p class="font-medium">${a.titulo || 'Aula'}</p>
-                        <p class="text-sm text-gray-500">${new Date(a.data).toLocaleDateString('pt-BR')} • ${a.horario}</p>
-                    </div>
-                `).join('') : '<p class="text-gray-400 text-center py-4">Nenhuma aula agendada</p>';
-
-            // Lista de alunos (tab alunos)
-            document.getElementById('lista-alunos-dashboard').innerHTML = db.alunos.length ?
-                db.alunos.map((a, i) => `
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold">${a.nome.charAt(0)}</div>
-                            <div><p class="font-medium">${a.nome}</p><p class="text-sm text-gray-500">${a.nivel || 'N/A'}</p></div>
+            // Calcular saldo
+            const saldo = db.financeiro.transacoes.reduce((acc, t) => {
+                return t.tipo === 'entrada' ? acc + parseFloat(t.valor) : acc - parseFloat(t.valor);
+            }, 0);
+            document.getElementById('count-saldo').textContent = formatCurrency(saldo);
+            
+            // Alunos recentes (últimos 3)
+            const recentStudents = db.alunos.slice(-3).reverse();
+            const recentStudentsEl = document.getElementById('recent-students');
+            if (recentStudents.length > 0) {
+                recentStudentsEl.innerHTML = recentStudents.map(aluno => `
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition cursor-pointer" onclick="navigateTo('alunos.html')">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold">
+                            ${aluno.nome.charAt(0).toUpperCase()}
                         </div>
-                        <button onclick="deleteAluno(${i})" class="text-red-500 hover:bg-red-50 p-2 rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                    </div>
-                `).join('') : '<p class="text-gray-400 text-center py-4">Nenhum aluno cadastrado</p>';
-
-            // Lista de turmas (tab turmas)
-            document.getElementById('lista-turmas-dashboard').innerHTML = db.turmas.length ?
-                db.turmas.map((t, i) => `
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div>
-                            <p class="font-medium">${t.nome}</p>
-                            <p class="text-sm text-gray-500">${t.nivel || 'Nível não definido'}</p>
+                        <div class="flex-1">
+                            <p class="font-medium text-gray-800 dark:text-white text-sm">${aluno.nome}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">${aluno.nivel || 'Nível não definido'}</p>
                         </div>
-                        <button onclick="deleteTurma(${i})" class="text-red-500 hover:bg-red-50 p-2 rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </div>
-                `).join('') : '<p class="text-gray-400 text-center py-4">Nenhuma turma cadastrada</p>';
-
-            // Lista de transações (tab financeiro)
-            document.getElementById('lista-transacoes').innerHTML = db.financeiro.transacoes.length ?
-                db.financeiro.transacoes.slice().reverse().map((t, i) => `
-                    <div class="flex items-center justify-between p-3 ${t.tipo === 'entrada' ? 'bg-green-50' : 'bg-red-50'} rounded-lg">
-                        <div>
-                            <p class="font-medium">${t.descricao}</p>
-                            <p class="text-sm text-gray-500">${new Date(t.data).toLocaleDateString('pt-BR')}</p>
+                `).join('');
+            }
+            
+            // Próximas aulas (hoje)
+            const today = new Date().toISOString().split('T')[0];
+            const todayClasses = db.agenda.filter(a => a.data === today).slice(0, 3);
+            const upcomingClassesEl = document.getElementById('upcoming-classes');
+            if (todayClasses.length > 0) {
+                upcomingClassesEl.innerHTML = todayClasses.map(aula => `
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition cursor-pointer" onclick="navigateTo('agenda.html')">
+                        <div class="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                            <i data-lucide="clock" class="w-5 h-5 text-orange-600 dark:text-orange-400"></i>
                         </div>
-                        <p class="font-bold ${t.tipo === 'entrada' ? 'text-green-600' : 'text-red-600'}">
-                            ${t.tipo === 'entrada' ? '+' : '-'} R$ ${parseFloat(t.valor).toFixed(2)}
-                        </p>
+                        <div class="flex-1">
+                            <p class="font-medium text-gray-800 dark:text-white text-sm">${aula.titulo || 'Aula'}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">${aula.horario || 'Sem horário'}</p>
+                        </div>
                     </div>
-                `).join('') : '<p class="text-gray-400 text-center py-4">Nenhuma transação registrada</p>';
-
-            // Lista de agenda (tab agenda)
-            document.getElementById('lista-agenda-dashboard').innerHTML = db.agenda.length ?
-                db.agenda.sort((a,b) => a.data.localeCompare(b.data)).map((a, i) => `
-                    <div class="p-3 bg-gray-50 rounded-lg border-l-4 border-orange-500">
-                        <p class="font-medium">${a.titulo || 'Aula'}</p>
-                        <p class="text-sm text-gray-500">${new Date(a.data).toLocaleDateString('pt-BR')} • ${a.horario}</p>
-                    </div>
-                `).join('') : '<p class="text-gray-400 text-center py-4">Nenhuma aula agendada</p>';
-
+                `).join('');
+            }
+            
+            // Resumo financeiro do mês
+            const currentMonth = new Date().getMonth();
+            const monthlyTransactions = db.financeiro.transacoes.filter(t => {
+                const transDate = new Date(t.data);
+                return transDate.getMonth() === currentMonth;
+            });
+            
+            const income = monthlyTransactions.filter(t => t.tipo === 'entrada').reduce((acc, t) => acc + parseFloat(t.valor), 0);
+            const expense = monthlyTransactions.filter(t => t.tipo === 'saida').reduce((acc, t) => acc + parseFloat(t.valor), 0);
+            
+            document.getElementById('monthly-income').textContent = formatCurrency(income);
+            document.getElementById('monthly-expense').textContent = formatCurrency(expense);
+            
+            // Atualizar ícones
             lucide.createIcons();
         }
-
-        function deleteAluno(index) {
-            if(confirm('Excluir este aluno?')) {
-                const db = getDB();
-                db.alunos.splice(index, 1);
-                saveDB(db);
-            }
+        
+        // Format currency
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(value);
         }
-
-        function deleteTurma(index) {
-            if(confirm('Excluir esta turma?')) {
-                const db = getDB();
-                db.turmas.splice(index, 1);
-                saveDB(db);
-            }
+        
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+        
+        // Check saved theme
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.classList.add('dark');
         }
-
-        // Inicializa
+        
+        themeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        });
+        
+        // Set current year
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        
+        // Initialize dashboard
         updateDashboard();
+        
+        // Auto-update every 30 seconds
+        setInterval(updateDashboard, 30000);
     </script>
 </body>
 </html>
