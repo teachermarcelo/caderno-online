@@ -1,142 +1,420 @@
 <!DOCTYPE html>
 <html lang="pt-BR" class="light">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Material — Caderno Online</title>
-  <link rel="icon" href="image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238b5cf6'><path d='M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25'/></svg>">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { darkMode: 'class' }</script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <style>
-    :root { --bg: 0 0% 100%; --fg: 222.2 84% 4.9%; }
-    .dark { --bg: 222.2 84% 4.9%; --fg: 210 40% 98%; }
-    body { background: hsl(var(--bg)); color: hsl(var(--fg)); font-family: system-ui, sans-serif; }
-    .modal { opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-    .modal.open { opacity: 1; pointer-events: auto; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material - Caderno Online</title>
+    <link rel="icon" href="image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238b5cf6'><path d='M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25'/></svg>">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#8b5cf6',
+                        secondary: '#ec4899',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
+                    },
+                    animation: { 'float': 'float 3s ease-in-out infinite' },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .dark body { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+        .glass-effect { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .dark .glass-effect { background: rgba(15, 23, 42, 0.95); }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .floating-btn { position: fixed; bottom: 30px; right: 30px; z-index: 1000; transition: all 0.3s ease; animation: float 3s ease-in-out infinite; }
+        .floating-btn:hover { transform: scale(1.1) translateY(-5px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4); }
+        .modal { opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+        .modal.open { opacity: 1; pointer-events: auto; }
+        .gradient-text { background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    </style>
 </head>
-<body class="min-h-screen transition-colors duration-300">
-  <header class="sticky top-0 z-50 border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-md">
-    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-      <a href="index.html" class="flex items-center gap-3">
-        <div class="h-9 w-9 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center"><i data-lucide="book-open" class="h-5 w-5 text-white"></i></div>
-        <h1 class="text-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">Caderno Online</h1>
-      </a>
-      <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition"><i data-lucide="sun" class="hidden dark:block h-5 w-5"></i><i data-lucide="moon" class="block dark:hidden h-5 w-5"></i></button>
-    </div>
-  </header>
+<body class="text-gray-800 dark:text-gray-200 transition-colors duration-300">
 
-  <main class="max-w-7xl mx-auto px-4 py-6">
-    <div class="flex justify-between items-center mb-6">
-      <div><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="link-2" class="h-6 w-6 text-amber-500"></i> Biblioteca de Material</h2><p class="text-sm text-gray-500 mt-1">Links, vídeos e PDFs organizados</p></div>
-      <button onclick="openModal()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium transition flex items-center gap-2"><i data-lucide="plus" class="h-4 w-4"></i> Novo Material</button>
-    </div>
-    <div id="list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-    <div id="empty" class="hidden flex-col items-center justify-center py-16 text-center"><div class="h-16 w-16 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4"><i data-lucide="file-plus-2" class="h-8 w-8 text-gray-400"></i></div><h3 class="text-lg font-semibold mb-2">Nenhum material encontrado</h3><p class="text-gray-500 max-w-sm">Adicione links ou recursos.</p></div>
-  </main>
-
-  <footer class="mt-auto border-t py-4 text-center text-xs text-gray-500">© <span id="year"></span> Caderno Online</footer>
-
-  <!-- MODAL -->
-  <div id="modal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-    <div class="bg-white dark:bg-gray-800 rounded-xl border w-full max-w-lg p-6 shadow-xl">
-      <div class="flex justify-between items-center mb-4"><h3 id="m-title" class="text-lg font-semibold">Novo Material</h3><button onclick="closeModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"><i data-lucide="x" class="h-5 w-5"></i></button></div>
-      <form id="form" class="space-y-4">
-        <input type="hidden" id="id">
-        <div><label class="block text-sm font-medium mb-1">Título *</label><input type="text" id="titulo" required class="w-full px-3 py-2 rounded-lg border bg-gray-50 dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-amber-500/50"></div>
-        <div class="grid grid-cols-2 gap-3">
-          <div><label class="block text-sm font-medium mb-1">Tipo</label><select id="tipo" class="w-full px-3 py-2 rounded-lg border bg-gray-50 dark:bg-gray-700 dark:border-gray-600"><option value="link">Link</option><option value="video">Vídeo</option><option value="pdf">PDF</option><option value="audio">Áudio</option></select></div>
-          <div><label class="block text-sm font-medium mb-1">Nível/Pasta</label><select id="nivel" class="w-full px-3 py-2 rounded-lg border bg-gray-50 dark:bg-gray-700 dark:border-gray-600"><option value="Global">Global</option><option value="A1">A1</option><option value="A2">A2</option><option value="B1">B1</option><option value="B2">B2</option><option value="C1">C1</option><option value="C2">C2</option></select></div>
+    <!-- Header -->
+    <header class="glass-effect sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-3">
+                    <a href="index.html" class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg hover:opacity-90 transition">
+                        <i data-lucide="arrow-left" class="w-6 h-6 text-white"></i>
+                    </a>
+                    <h1 class="text-2xl font-bold gradient-text">Biblioteca de Material</h1>
+                </div>
+                <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 shadow-md">
+                    <i data-lucide="sun" class="w-5 h-5 hidden dark:block text-yellow-400"></i>
+                    <i data-lucide="moon" class="w-5 h-5 block dark:hidden text-gray-600"></i>
+                </button>
+            </div>
         </div>
-        <div><label class="block text-sm font-medium mb-1">URL</label><input type="url" id="url" class="w-full px-3 py-2 rounded-lg border bg-gray-50 dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-amber-500/50" placeholder="https://..."></div>
-        <div><label class="block text-sm font-medium mb-1">Vincular a Aluno (opcional)</label><select id="aluno" class="w-full px-3 py-2 rounded-lg border bg-gray-50 dark:bg-gray-700 dark:border-gray-600"><option value="">Global (sem aluno)</option></select></div>
-        <div><label class="block text-sm font-medium mb-1">Descrição</label><textarea id="descricao" rows="2" class="w-full px-3 py-2 rounded-lg border bg-gray-50 dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-amber-500/50"></textarea></div>
-        <div class="flex gap-3 pt-2"><button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">Cancelar</button><button type="submit" class="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium transition">Salvar</button></div>
-      </form>
+    </header>
+
+    <!-- Main -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Header Section -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div>
+                <h2 class="text-2xl font-bold text-white">Links e Recursos</h2>
+                <p class="text-white/80 text-sm mt-1">Organize vídeos, PDFs e links externos</p>
+            </div>
+            <button onclick="openModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-white text-amber-600 rounded-lg font-medium hover:bg-gray-50 transition shadow-md">
+                <i data-lucide="plus" class="w-4 h-4"></i> Novo Material
+            </button>
+        </div>
+
+        <!-- Search & Filter -->
+        <div class="glass-effect rounded-2xl p-4 mb-6 shadow-lg">
+            <div class="flex flex-col sm:flex-row gap-3">
+                <div class="relative flex-1">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar por título..." class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+                <select id="typeFilter" class="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <option value="">Todos os Tipos</option>
+                    <option value="link">Link</option>
+                    <option value="video">Vídeo</option>
+                    <option value="pdf">PDF</option>
+                    <option value="audio">Áudio</option>
+                </select>
+                <select id="levelFilter" class="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <option value="">Todos os Níveis</option>
+                    <option value="A1">A1</option>
+                    <option value="A2">A2</option>
+                    <option value="B1">B1</option>
+                    <option value="B2">B2</option>
+                    <option value="C1">C1</option>
+                    <option value="C2">C2</option>
+                    <option value="Global">Global</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Material Grid -->
+        <div id="materialList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Cards injected via JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-center">
+            <div class="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center mb-4">
+                <i data-lucide="link-2" class="w-8 h-8 text-white/60"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-white mb-2">Nenhum material encontrado</h3>
+            <p class="text-white/70 max-w-sm">Adicione links, vídeos ou PDFs clicando no botão acima.</p>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div id="materialModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="glass-effect rounded-2xl w-full max-w-lg p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalTitle" class="text-lg font-semibold text-gray-800 dark:text-white">Novo Material</h3>
+                <button onclick="closeModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            
+            <form id="materialForm" class="space-y-4">
+                <input type="hidden" id="editId">
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Título *</label>
+                    <input type="text" id="titulo" required class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500" placeholder="Ex: Vídeo sobre Present Perfect">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo</label>
+                        <select id="tipo" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                            <option value="link">Link</option>
+                            <option value="video">Vídeo</option>
+                            <option value="pdf">PDF</option>
+                            <option value="audio">Áudio</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nível/Pasta</label>
+                        <select id="nivel" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                            <option value="Global">Global</option>
+                            <option value="A1">A1</option>
+                            <option value="A2">A2</option>
+                            <option value="B1">B1</option>
+                            <option value="B2">B2</option>
+                            <option value="C1">C1</option>
+                            <option value="C2">C2</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">URL</label>
+                    <input type="url" id="url" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500" placeholder="https://...">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Vincular a Aluno (opcional)</label>
+                    <select id="aluno" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                        <option value="">Global (sem aluno)</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Descrição</label>
+                    <textarea id="descricao" rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" placeholder="Descrição do material..."></textarea>
+                </div>
+                
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">Cancelar</button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium transition">Salvar</button>
+                </div>
+            </form>
+        </div>
     </div>
-  </div>
 
-  <script>
-    const html = document.documentElement;
-    if(localStorage.getItem('theme')==='dark') html.classList.add('dark');
-    document.getElementById('themeToggle').onclick = () => { html.classList.toggle('dark'); localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light'); };
-    document.getElementById('year').textContent = new Date().getFullYear();
+    <!-- Floating Button -->
+    <div class="floating-btn">
+        <button onclick="openModal()" class="w-14 h-14 rounded-full bg-amber-600 hover:bg-amber-700 text-white shadow-lg flex items-center justify-center transition-all" title="Novo Material">
+            <i data-lucide="link-2" class="w-6 h-6"></i>
+        </button>
+    </div>
 
-    function loadDB() { const s = localStorage.getItem('cadernoOnlineDB'); return s ? JSON.parse(s) : {alunos:[],turmas:[],cefr:[],material:[],agenda:[],financeiro:{transacoes:[]}}; }
-    function saveDB(db) { localStorage.setItem('cadernoOnlineDB', JSON.stringify(db)); render(); }
+    <!-- Footer -->
+    <footer class="glass-effect border-t border-gray-200 dark:border-gray-700 mt-12 py-4">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-gray-600 dark:text-gray-400">
+            © <span id="current-year"></span> Caderno Online
+        </div>
+    </footer>
 
-    function render() {
-      const db = loadDB();
-      const list = document.getElementById('list');
-      const empty = document.getElementById('empty');
-      if(db.material.length===0) { list.innerHTML=''; empty.classList.remove('hidden'); empty.classList.add('flex'); return; }
-      empty.classList.add('hidden'); empty.classList.remove('flex');
-      
-      list.innerHTML = db.material.map((m,i) => {
-        const icon = m.tipo==='video' ? 'youtube' : m.tipo==='pdf' ? 'file-text' : m.tipo==='audio' ? 'music' : 'link';
-        const color = m.tipo==='video' ? 'text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400' : m.tipo==='pdf' ? 'text-orange-600 bg-orange-50 dark:bg-orange-900/20 dark:text-orange-400' : m.tipo==='audio' ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20 dark:text-purple-400' : 'text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400';
-        const linkBtn = m.url ? `<a href="${m.url}" target="_blank" class="mt-3 inline-flex items-center gap-1.5 text-sm ${color.replace('bg-','text-').split(' ')[0]} hover:underline"><i data-lucide="external-link" class="h-3.5 w-3.5"></i> Abrir Recurso</a>` : '';
-        return `<div class="bg-white dark:bg-gray-800 p-4 rounded-xl border shadow-sm hover:shadow-md transition relative group">
-          <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition flex gap-1">
-            <button onclick="edit(${i})" class="p-1.5 bg-gray-100 dark:bg-gray-700 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600"><i data-lucide="pencil" class="h-3.5 w-3.5"></i></button>
-            <button onclick="del(${i})" class="p-1.5 bg-gray-100 dark:bg-gray-700 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600"><i data-lucide="trash-2" class="h-3.5 w-3.5"></i></button>
-          </div>
-          <div class="flex items-center gap-3 mb-2">
-            <div class="h-10 w-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center"><i data-lucide="${icon}" class="h-5 w-5 ${color.split(' ')[0]}"></i></div>
-            <div><h4 class="font-semibold">${m.titulo}</h4><p class="text-xs text-gray-500">${m.tipo} • ${m.nivel}</p></div>
-          </div>
-          ${m.descricao ? `<p class="text-sm text-gray-500 line-clamp-2">${m.descricao}</p>` : ''}
-          ${linkBtn}
-        </div>`;
-      }).join('');
-      lucide.createIcons();
-    }
-
-    function openModal(id=null) {
-      document.getElementById('modal').classList.add('open');
-      document.getElementById('m-title').textContent = id ? 'Editar Material' : 'Novo Material';
-      document.getElementById('form').reset();
-      document.getElementById('id').value = id ?? '';
-      const db = loadDB();
-      document.getElementById('aluno').innerHTML = '<option value="">Global (sem aluno)</option>' + db.alunos.map(a => `<option value="${a.id}">${a.nome} (${a.nivel||'N/A'})</option>`).join('');
-      if(id!==null) {
-        const m = db.material[id];
-        document.getElementById('titulo').value = m.titulo;
-        document.getElementById('tipo').value = m.tipo;
-        document.getElementById('nivel').value = m.nivel;
-        document.getElementById('url').value = m.url||'';
-        document.getElementById('aluno').value = m.alunoId||'';
-        document.getElementById('descricao').value = m.descricao||'';
-      }
-    }
-    function closeModal() { document.getElementById('modal').classList.remove('open'); }
-
-    document.getElementById('form').addEventListener('submit', e => {
-      e.preventDefault();
-      const db = loadDB();
-      const id = document.getElementById('id').value;
-      const data = {
-        id: id || crypto.randomUUID(),
-        titulo: document.getElementById('titulo').value.trim(),
-        tipo: document.getElementById('tipo').value,
-        nivel: document.getElementById('nivel').value,
-        url: document.getElementById('url').value.trim(),
-        alunoId: document.getElementById('aluno').value || null,
-        descricao: document.getElementById('descricao').value.trim()
-      };
-      if(id) { const i = db.material.findIndex(m=>m.id===id); if(i!==-1) db.material[i] = data; }
-      else db.material.push(data);
-      saveDB(db);
-      closeModal();
-    });
-
-    function edit(i) { openModal(i); }
-    function del(i) { if(confirm('Excluir este material?')) { const db=loadDB(); db.material.splice(i,1); saveDB(db); } }
-    document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
-    document.getElementById('modal').addEventListener('click', e => { if(e.target.id==='modal') closeModal(); });
-
-    render();
-  </script>
+    <!-- JavaScript -->
+    <script>
+        // === BANCO DE DADOS (Mesma estrutura do index.html) ===
+        const DB_KEY = 'cadernoOnlineDB';
+        
+        function getDB() {
+            const data = localStorage.getItem(DB_KEY);
+            return data ? JSON.parse(data) : {
+                alunos: [], turmas: [], cefr: [], material: [], agenda: [],
+                financeiro: { transacoes: [] }
+            };
+        }
+        
+        function saveDB(data) {
+            localStorage.setItem(DB_KEY, JSON.stringify(data));
+            renderMaterials();
+            // Notifica o index.html se estiver aberto em outra aba
+            if (typeof updateDashboard === 'function') updateDashboard();
+        }
+        
+        // === TEMA ===
+        const html = document.documentElement;
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.classList.add('dark');
+        }
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        });
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        
+        // === RENDERIZAÇÃO ===
+        function renderMaterials() {
+            const db = getDB();
+            const list = document.getElementById('materialList');
+            const empty = document.getElementById('emptyState');
+            
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const type = document.getElementById('typeFilter').value;
+            const level = document.getElementById('levelFilter').value;
+            
+            let filtered = db.material.filter(m => {
+                const matchSearch = m.titulo.toLowerCase().includes(search);
+                const matchType = type ? m.tipo === type : true;
+                const matchLevel = level ? m.nivel === level : true;
+                return matchSearch && matchType && matchLevel;
+            });
+            
+            if (filtered.length === 0) {
+                list.innerHTML = '';
+                empty.classList.remove('hidden');
+                empty.classList.add('flex');
+                return;
+            }
+            empty.classList.add('hidden');
+            empty.classList.remove('flex');
+            
+            list.innerHTML = filtered.map((mat, idx) => {
+                const realIndex = db.material.findIndex(m => m.titulo === mat.titulo && m.url === mat.url);
+                
+                const iconMap = {
+                    video: 'youtube',
+                    pdf: 'file-text',
+                    audio: 'music',
+                    link: 'link'
+                };
+                
+                const colorMap = {
+                    video: 'text-red-600 bg-red-50 dark:bg-red-900/30 dark:text-red-400',
+                    pdf: 'text-orange-600 bg-orange-50 dark:bg-orange-900/30 dark:text-orange-400',
+                    audio: 'text-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-400',
+                    link: 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400'
+                };
+                
+                const icon = iconMap[mat.tipo] || 'link';
+                const color = colorMap[mat.tipo] || colorMap.link;
+                
+                const linkBtn = mat.url ? `
+                    <a href="${mat.url}" target="_blank" class="mt-3 inline-flex items-center gap-1.5 text-sm ${color.split(' ')[0]} hover:underline font-medium">
+                        <i data-lucide="external-link" class="h-3.5 w-3.5"></i> Abrir Recurso
+                    </a>
+                ` : '';
+                
+                return `
+                <div class="glass-effect rounded-2xl p-5 shadow-lg card-hover relative group">
+                    <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition flex gap-1">
+                        <button onclick="editMaterial(${realIndex})" class="p-1.5 bg-gray-100 dark:bg-gray-700 rounded hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-600 transition" title="Editar">
+                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="deleteMaterial(${realIndex})" class="p-1.5 bg-gray-100 dark:bg-gray-700 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 transition" title="Excluir">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                            <i data-lucide="${icon}" class="w-5 h-5 ${color.split(' ')[0]}"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-800 dark:text-white">${mat.titulo}</h3>
+                            <p class="text-xs text-gray-500">${mat.tipo} • ${mat.nivel}</p>
+                        </div>
+                    </div>
+                    
+                    ${mat.descricao ? `<p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">${mat.descricao}</p>` : ''}
+                    ${linkBtn}
+                </div>`;
+            }).join('');
+            
+            lucide.createIcons();
+        }
+        
+        // === MODAL & FORMULÁRIO ===
+        function openModal(id = null) {
+            document.getElementById('materialModal').classList.add('open');
+            document.getElementById('modalTitle').textContent = id ? 'Editar Material' : 'Novo Material';
+            document.getElementById('materialForm').reset();
+            document.getElementById('editId').value = id ?? '';
+            populateAlunoSelect();
+            
+            if (id !== null) {
+                const db = getDB();
+                const mat = db.material[id];
+                if (mat) {
+                    document.getElementById('titulo').value = mat.titulo;
+                    document.getElementById('tipo').value = mat.tipo;
+                    document.getElementById('nivel').value = mat.nivel;
+                    document.getElementById('url').value = mat.url || '';
+                    document.getElementById('aluno').value = mat.alunoId || '';
+                    document.getElementById('descricao').value = mat.descricao || '';
+                }
+            }
+            lucide.createIcons();
+        }
+        
+        function closeModal() {
+            document.getElementById('materialModal').classList.remove('open');
+        }
+        
+        function populateAlunoSelect() {
+            const db = getDB();
+            const select = document.getElementById('aluno');
+            select.innerHTML = '<option value="">Global (sem aluno)</option>';
+            db.alunos.forEach(a => {
+                const option = document.createElement('option');
+                option.value = a.id;
+                option.textContent = `${a.nome} (${a.nivel || 'N/A'})`;
+                select.appendChild(option);
+            });
+        }
+        
+        // === SUBMIT DO FORMULÁRIO (com validação de duplicata) ===
+        document.getElementById('materialForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const db = getDB();
+            const id = document.getElementById('editId').value;
+            const titulo = document.getElementById('titulo').value.trim();
+            
+            // Validação: não permitir títulos duplicados
+            const exists = db.material.some((m, i) => 
+                m.titulo.toLowerCase() === titulo.toLowerCase() && 
+                m.url === document.getElementById('url').value.trim() && 
+                i != id
+            );
+            if (exists) {
+                alert('⚠️ Já existe um material com este título e URL!');
+                return;
+            }
+            
+            const materialData = {
+                titulo: titulo,
+                tipo: document.getElementById('tipo').value,
+                nivel: document.getElementById('nivel').value,
+                url: document.getElementById('url').value.trim(),
+                alunoId: document.getElementById('aluno').value || null,
+                descricao: document.getElementById('descricao').value.trim()
+            };
+            
+            if (id !== '') {
+                db.material[id] = { ...db.material[id], ...materialData };
+            } else {
+                db.material.push(materialData);
+            }
+            
+            saveDB(db);
+            closeModal();
+        });
+        
+        // === AÇÕES ===
+        function editMaterial(index) { openModal(index); }
+        
+        function deleteMaterial(index) {
+            if (!confirm('Tem certeza que deseja excluir este material?')) return;
+            const db = getDB();
+            db.material.splice(index, 1);
+            saveDB(db);
+        }
+        
+        // === FILTERS ===
+        document.getElementById('searchInput').addEventListener('input', renderMaterials);
+        document.getElementById('typeFilter').addEventListener('change', renderMaterials);
+        document.getElementById('levelFilter').addEventListener('change', renderMaterials);
+        
+        // === CLOSE MODAL ON ESC / CLICK OUTSIDE ===
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+        document.getElementById('materialModal').addEventListener('click', e => { if (e.target.id === 'materialModal') closeModal(); });
+        
+        // === INIT ===
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMaterials();
+            lucide.createIcons();
+        });
+    </script>
 </body>
 </html>
