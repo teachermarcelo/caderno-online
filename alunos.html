@@ -6,247 +6,206 @@
     <title>Alunos - Caderno Online</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .modal { background-color: rgba(0,0,0,0.5); }
-    </style>
+    <!-- IMPORTANTE: Importa o cérebro do sistema -->
+    <script src="app.js"></script>
 </head>
-<body class="text-gray-800">
+<body class="bg-gray-50 min-h-screen">
 
-    <!-- Navbar (Mesma do index) -->
-    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="book-open" class="text-purple-600 w-6 h-6"></i>
-                    <span class="font-bold text-xl">Caderno Online</span>
-                </div>
-                <div class="hidden md:flex space-x-1 bg-gray-100 p-1 rounded-lg">
-                    <a href="index.html" class="px-4 py-2 rounded-md flex items-center gap-2 hover:bg-white hover:shadow-sm transition-all"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Home</a>
-                    <a href="alunos.html" class="px-4 py-2 rounded-md bg-white shadow-sm text-purple-600 font-medium flex items-center gap-2"><i data-lucide="users" class="w-4 h-4"></i> Alunos</a>
-                    <a href="turmas.html" class="px-4 py-2 rounded-md flex items-center gap-2 hover:bg-white hover:shadow-sm transition-all"><i data-lucide="graduation-cap" class="w-4 h-4"></i> Turmas</a>
-                    <a href="cefr.html" class="px-4 py-2 rounded-md flex items-center gap-2 hover:bg-white hover:shadow-sm transition-all"><i data-lucide="file-text" class="w-4 h-4"></i> CEFR</a>
-                    <a href="material.html" class="px-4 py-2 rounded-md flex items-center gap-2 hover:bg-white hover:shadow-sm transition-all"><i data-lucide="link" class="w-4 h-4"></i> Material</a>
-                    <a href="agenda.html" class="px-4 py-2 rounded-md flex items-center gap-2 hover:bg-white hover:shadow-sm transition-all"><i data-lucide="calendar" class="w-4 h-4"></i> Agenda</a>
-                    <a href="financeiro.html" class="px-4 py-2 rounded-md flex items-center gap-2 hover:bg-white hover:shadow-sm transition-all"><i data-lucide="wallet" class="w-4 h-4"></i> Financeiro</a>
-                </div>
-            </div>
+    <!-- Navbar Simplificada -->
+    <nav class="bg-white border-b sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-2 font-bold text-xl">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i> Voltar
+            </a>
+            <h1 class="text-lg font-semibold text-gray-600">Gestão de Alunos</h1>
         </div>
     </nav>
 
     <main class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Header da Página -->
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold">Gestão de Alunos</h2>
-            <button onclick="openModal()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center gap-2">
+            <h2 class="text-2xl font-bold text-gray-800">Lista de Alunos</h2>
+            <button onclick="abrirModal()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center gap-2">
                 <i data-lucide="plus" class="w-4 h-4"></i> Novo Aluno
             </button>
         </div>
 
-        <!-- Lista de Alunos -->
-        <div id="studentList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Cards injetados via JS -->
+        <!-- Lista de Cards -->
+        <div id="listaAlunos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Cards serão injetados aqui via JS -->
+        </div>
+        
+        <div id="msgVazio" class="hidden text-center py-12 text-gray-500">
+            <i data-lucide="users" class="w-12 h-12 mx-auto mb-3 text-gray-300"></i>
+            <p>Nenhum aluno cadastrado ainda.</p>
         </div>
     </main>
 
     <!-- Modal de Cadastro -->
-    <div id="modal" class="modal fixed inset-0 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 m-4">
+    <div id="modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold" id="modalTitle">Novo Aluno</h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-6 h-6"></i></button>
+                <h3 id="modalTitle" class="text-xl font-bold">Novo Aluno</h3>
+                <button onclick="fecharModal()" class="text-gray-400 hover:text-red-500"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
             
-            <form id="studentForm" class="space-y-4">
+            <form id="formAluno" class="space-y-4">
                 <input type="hidden" id="editId">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Nome Completo *</label>
-                    <input type="text" id="nome" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 border p-2">
+                    <input type="text" id="nome" required class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Nível CEFR</label>
-                        <select id="nivel" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2">
-                            <option value="A1">A1</option><option value="A2">A2</option><option value="B1">B1</option>
-                            <option value="B2">B2</option><option value="C1">C1</option><option value="C2">C2</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Telefone</label>
-                        <input type="text" id="telefone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2">
-                    </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Nível CEFR</label>
+                    <select id="nivel" class="w-full mt-1 px-3 py-2 border rounded-lg">
+                        <option value="A1">A1 - Iniciante</option>
+                        <option value="A2">A2 - Básico</option>
+                        <option value="B1">B1 - Intermediário</option>
+                        <option value="B2">B2 - Intermediário Alto</option>
+                        <option value="C1">C1 - Avançado</option>
+                        <option value="C2">C2 - Proficiente</option>
+                    </select>
                 </div>
-
-                <!-- Área de Links/Mídia -->
-                <div class="border-t pt-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Links & Recursos (Vídeo, PDF, Externo)</label>
-                    <div id="linksContainer" class="space-y-2 mb-2">
-                        <!-- Inputs de link dinâmicos -->
-                    </div>
-                    <button type="button" onclick="addLinkInput()" class="text-sm text-purple-600 hover:text-purple-800 flex items-center gap-1">
-                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Adicionar Link/Recurso
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Telefone</label>
+                    <input type="text" id="telefone" class="w-full mt-1 px-3 py-2 border rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Links (Opcional)</label>
+                    <div id="linksContainer" class="space-y-2 mt-1"></div>
+                    <button type="button" onclick="adicionarLinkInput()" class="text-sm text-purple-600 mt-1 flex items-center gap-1">
+                        <i data-lucide="plus-circle" class="w-3 h-3"></i> Adicionar Link
                     </button>
                 </div>
-
-                <div class="flex justify-end gap-3 pt-4">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">Salvar</button>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="fecharModal()" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50">Cancelar</button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">Salvar</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('cadernoDB')) || { alunos: [], turmas: [], cefr: [], agenda: [], financeiro: { entradas: 0, saidas: 0 } };
-
-        function save() {
-            localStorage.setItem('cadernoDB', JSON.stringify(db));
-            renderStudents();
-        }
-
-        function renderStudents() {
-            const list = document.getElementById('studentList');
-            list.innerHTML = '';
+        // Renderiza a lista de alunos na tela
+        function renderizarLista() {
+            const db = getDB();
+            const container = document.getElementById('listaAlunos');
+            const msgVazio = document.getElementById('msgVazio');
             
-            if(db.alunos.length === 0) {
-                list.innerHTML = '<p class="col-span-3 text-center text-gray-500 py-10">Nenhum aluno cadastrado.</p>';
-                return;
+            container.innerHTML = '';
+            
+            if (db.alunos.length === 0) {
+                msgVazio.classList.remove('hidden');
+            } else {
+                msgVazio.classList.add('hidden');
+                db.alunos.forEach(aluno => {
+                    let linksHtml = '';
+                    if (aluno.links && aluno.links.length > 0) {
+                        linksHtml = `<div class="mt-3 pt-3 border-t flex flex-wrap gap-2">
+                            ${aluno.links.map(l => `<a href="${l.url}" target="_blank" class="text-xs bg-gray-100 px-2 py-1 rounded hover:bg-purple-100 text-purple-700">${l.label || 'Link'}</a>`).join('')}
+                        </div>`;
+                    }
+
+                    container.innerHTML += `
+                        <div class="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold">
+                                        ${aluno.nome.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-gray-800">${aluno.nome}</h3>
+                                        <span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600">${aluno.nivel}</span>
+                                    </div>
+                                </div>
+                                <div class="flex gap-1">
+                                    <button onclick="editarAluno('${aluno.id}')" class="p-1.5 text-gray-400 hover:text-blue-600"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                    <button onclick="removerAluno('${aluno.id}')" class="p-1.5 text-gray-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                </div>
+                            </div>
+                            ${aluno.telefone ? `<p class="text-sm text-gray-500 mt-2"><i data-lucide="phone" class="w-3 h-3 inline mr-1"></i> ${aluno.telefone}</p>` : ''}
+                            ${linksHtml}
+                        </div>
+                    `;
+                });
             }
-
-            db.alunos.forEach((aluno, index) => {
-                let linksHtml = '';
-                if(aluno.links && aluno.links.length > 0) {
-                    linksHtml = '<div class="mt-4 pt-4 border-t border-gray-100 flex flex-wrap gap-2">';
-                    aluno.links.forEach(link => {
-                        let icon = link.type === 'video' ? 'youtube' : (link.type === 'pdf' ? 'file-text' : 'link');
-                        let color = link.type === 'video' ? 'text-red-500 bg-red-50' : (link.type === 'pdf' ? 'text-orange-500 bg-orange-50' : 'text-blue-500 bg-blue-50');
-                        
-                        linksHtml += `
-                            <a href="${link.url}" target="_blank" class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${color} hover:opacity-80 transition">
-                                <i data-lucide="${icon}" class="w-3 h-3"></i> ${link.label}
-                            </a>
-                        `;
-                    });
-                    linksHtml += '</div>';
-                }
-
-                const card = `
-                    <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all relative group">
-                        <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                            <button onclick="editStudent(${index})" class="p-1.5 bg-gray-100 rounded-full hover:bg-purple-100 text-purple-600"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                            <button onclick="deleteStudent(${index})" class="p-1.5 bg-gray-100 rounded-full hover:bg-red-100 text-red-600"><i data-lucide="trash" class="w-4 h-4"></i></button>
-                        </div>
-                        <div class="flex items-center gap-4 mb-4">
-                            <div class="w-12 h-12 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-lg">
-                                ${aluno.nome.charAt(0)}
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-lg">${aluno.nome}</h3>
-                                <span class="text-xs font-medium px-2 py-0.5 rounded bg-gray-100 text-gray-600">${aluno.nivel}</span>
-                            </div>
-                        </div>
-                        <p class="text-sm text-gray-500 mb-2"><i data-lucide="phone" class="w-3 h-3 inline mr-1"></i> ${aluno.telefone || 'Sem telefone'}</p>
-                        ${linksHtml}
-                    </div>
-                `;
-                list.innerHTML += card;
-            });
             lucide.createIcons();
         }
 
-        // Funções de Modal e Links
-        function openModal() {
+        // Funções do Modal
+        function abrirModal(id = null) {
             document.getElementById('modal').classList.remove('hidden');
-            document.getElementById('modal').classList.add('flex');
-            document.getElementById('studentForm').reset();
+            document.getElementById('formAluno').reset();
             document.getElementById('editId').value = '';
             document.getElementById('linksContainer').innerHTML = '';
-            addLinkInput(); // Adiciona um campo vazio por padrão
-        }
+            adicionarLinkInput();
 
-        function closeModal() {
-            document.getElementById('modal').classList.add('hidden');
-            document.getElementById('modal').classList.remove('flex');
-        }
-
-        function addLinkInput(url = '', label = '', type = 'link') {
-            const div = document.createElement('div');
-            div.className = 'flex gap-2 items-center';
-            div.innerHTML = `
-                <select class="link-type border rounded p-1.5 text-sm w-24 bg-gray-50">
-                    <option value="link" ${type==='link'?'selected':''}>Link</option>
-                    <option value="video" ${type==='video'?'selected':''}>Vídeo</option>
-                    <option value="pdf" ${type==='pdf'?'selected':''}>PDF</option>
-                </select>
-                <input type="text" placeholder="URL (https://...)" class="link-url border rounded p-1.5 text-sm flex-1" value="${url}">
-                <input type="text" placeholder="Rótulo" class="link-label border rounded p-1.5 text-sm w-24" value="${label}">
-                <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:bg-red-50 p-1 rounded"><i data-lucide="x" class="w-4 h-4"></i></button>
-            `;
-            document.getElementById('linksContainer').appendChild(div);
-            lucide.createIcons();
-        }
-
-        function getLinksFromForm() {
-            const links = [];
-            const rows = document.getElementById('linksContainer').children;
-            for(let row of rows) {
-                const url = row.querySelector('.link-url').value;
-                if(url) {
-                    links.push({
-                        type: row.querySelector('.link-type').value,
-                        url: url,
-                        label: row.querySelector('.link-label').value || 'Acessar'
-                    });
+            if (id) {
+                const aluno = getDB().alunos.find(a => a.id === id);
+                if (aluno) {
+                    document.getElementById('editId').value = aluno.id;
+                    document.getElementById('nome').value = aluno.nome;
+                    document.getElementById('nivel').value = aluno.nivel;
+                    document.getElementById('telefone').value = aluno.telefone || '';
+                    if (aluno.links) {
+                        aluno.links.forEach(l => adicionarLinkInput(l.url, l.label));
+                    }
                 }
             }
+        }
+
+        function fecharModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        function adicionarLinkInput(url = '', label = '') {
+            const div = document.createElement('div');
+            div.className = 'flex gap-2';
+            div.innerHTML = `
+                <input type="text" placeholder="URL" value="${url}" class="link-url flex-1 text-sm px-2 py-1 border rounded">
+                <input type="text" placeholder="Nome" value="${label}" class="link-label w-20 text-sm px-2 py-1 border rounded">
+                <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-600">×</button>
+            `;
+            document.getElementById('linksContainer').appendChild(div);
+        }
+
+        function getLinks() {
+            const links = [];
+            document.querySelectorAll('#linksContainer > div').forEach(div => {
+                const url = div.querySelector('.link-url').value;
+                if (url) {
+                    links.push({ url, label: div.querySelector('.link-label').value });
+                }
+            });
             return links;
         }
 
-        document.getElementById('studentForm').addEventListener('submit', (e) => {
+        // Eventos do Formulário
+        document.getElementById('formAluno').addEventListener('submit', function(e) {
             e.preventDefault();
             const id = document.getElementById('editId').value;
-            const novoAluno = {
+            const data = {
                 nome: document.getElementById('nome').value,
                 nivel: document.getElementById('nivel').value,
                 telefone: document.getElementById('telefone').value,
-                links: getLinksFromForm()
+                links: getLinks()
             };
 
-            if(id !== '') {
-                db.alunos[id] = novoAluno;
+            if (id) {
+                updateAluno(id, data);
             } else {
-                db.alunos.push(novoAluno);
+                addAluno(data);
             }
-            save();
-            closeModal();
+            
+            fecharModal();
+            renderizarLista();
         });
 
-        function editStudent(index) {
-            const aluno = db.alunos[index];
-            document.getElementById('editId').value = index;
-            document.getElementById('nome').value = aluno.nome;
-            document.getElementById('nivel').value = aluno.nivel;
-            document.getElementById('telefone').value = aluno.telefone;
-            
-            const container = document.getElementById('linksContainer');
-            container.innerHTML = '';
-            if(aluno.links) {
-                aluno.links.forEach(l => addLinkInput(l.url, l.label, l.type));
-            } else {
-                addLinkInput();
-            }
-            
-            document.getElementById('modal').classList.remove('hidden');
-            document.getElementById('modal').classList.add('flex');
-        }
+        function editarAluno(id) { abrirModal(id); }
+        function removerAluno(id) { deleteAluno(id); renderizarLista(); }
 
-        function deleteStudent(index) {
-            if(confirm('Tem certeza?')) {
-                db.alunos.splice(index, 1);
-                save();
-            }
-        }
-
-        renderStudents();
+        // Inicializa a página
+        renderizarLista();
     </script>
 </body>
 </html>
