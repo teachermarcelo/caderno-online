@@ -1,209 +1,116 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Caderno Online - Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-        .nav-item.active { background-color: white; color: #7c3aed; font-weight: 600; shadow: sm; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Caderno Online — Dashboard</title>
+  <link rel="icon" href="image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238b5cf6'><path d='M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25'/></svg>">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: 'class' }</script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root { --bg: 0 0% 100%; --fg: 222.2 84% 4.9%; }
+    .dark { --bg: 222.2 84% 4.9%; --fg: 210 40% 98%; }
+    body { background: hsl(var(--bg)); color: hsl(var(--fg)); font-family: system-ui, sans-serif; }
+  </style>
 </head>
-<body class="text-gray-800">
-
-    <!-- Navegação Superior -->
-    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="book-open" class="text-purple-600 w-6 h-6"></i>
-                    <span class="font-bold text-xl tracking-tight">Caderno Online</span>
-                </div>
-                <div class="hidden md:flex space-x-1 bg-gray-100 p-1 rounded-lg">
-                    <a href="index.html" class="nav-item active px-4 py-2 rounded-md flex items-center gap-2 transition-all">
-                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Home
-                    </a>
-                    <a href="alunos.html" class="nav-item px-4 py-2 rounded-md flex items-center gap-2 hover:bg-white hover:shadow-sm transition-all">
-                        <i data-lucide="users" class="w-4 h-4"></i> Alunos
-                    </a>
-                    <a href="turmas.html" class="nav-item px-4 py-2 rounded-md flex items-center gap-2 hover:bg-white hover:shadow-sm transition-all">
-                        <i data-lucide="graduation-cap" class="w-4 h-4"></i> Turmas
-                    </a>
-                    <a href="cefr.html" class="nav-item px-4 py-2 rounded-md flex items-center gap-2 hover:bg-white hover:shadow-sm transition-all">
-                        <i data-lucide="file-text" class="w-4 h-4"></i> CEFR
-                    </a>
-                    <a href="material.html" class="nav-item px-4 py-2 rounded-md flex items-center gap-2 hover:bg-white hover:shadow-sm transition-all">
-                        <i data-lucide="link" class="w-4 h-4"></i> Material
-                    </a>
-                    <a href="agenda.html" class="nav-item px-4 py-2 rounded-md flex items-center gap-2 hover:bg-white hover:shadow-sm transition-all">
-                        <i data-lucide="calendar" class="w-4 h-4"></i> Agenda
-                    </a>
-                    <a href="financeiro.html" class="nav-item px-4 py-2 rounded-md flex items-center gap-2 hover:bg-white hover:shadow-sm transition-all">
-                        <i data-lucide="wallet" class="w-4 h-4"></i> Financeiro
-                    </a>
-                </div>
-            </div>
+<body class="min-h-screen transition-colors duration-300">
+  <header class="sticky top-0 z-50 border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="h-9 w-9 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+          <i data-lucide="book-open" class="h-5 w-5 text-white"></i>
         </div>
-    </nav>
+        <h1 class="text-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">Caderno Online</h1>
+      </div>
+      <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+        <i data-lucide="sun" class="hidden dark:block h-5 w-5"></i>
+        <i data-lucide="moon" class="block dark:hidden h-5 w-5"></i>
+      </button>
+    </div>
+  </header>
 
-    <!-- Conteúdo Principal -->
-    <main class="max-w-7xl mx-auto px-4 py-8">
-        
-        <!-- Cards de Estatísticas -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <!-- Card Alunos -->
-            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm card-hover transition-all cursor-pointer" onclick="window.location.href='alunos.html'">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-sm text-gray-500 font-medium">Alunos</p>
-                        <h3 class="text-3xl font-bold mt-1" id="dash-alunos">0</h3>
-                    </div>
-                    <div class="p-3 bg-purple-100 text-purple-600 rounded-lg">
-                        <i data-lucide="users" class="w-6 h-6"></i>
-                    </div>
-                </div>
-            </div>
+  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border shadow-sm"><p class="text-xs text-gray-500">Alunos</p><p class="text-2xl font-bold" id="c-alunos">0</p></div>
+      <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border shadow-sm"><p class="text-xs text-gray-500">Turmas</p><p class="text-2xl font-bold" id="c-turmas">0</p></div>
+      <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border shadow-sm"><p class="text-xs text-gray-500">Aulas CEFR</p><p class="text-2xl font-bold" id="c-cefr">0</p></div>
+      <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border shadow-sm"><p class="text-xs text-gray-500">Material</p><p class="text-2xl font-bold" id="c-material">0</p></div>
+      <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border shadow-sm"><p class="text-xs text-gray-500">Agenda</p><p class="text-2xl font-bold" id="c-agenda">0</p></div>
+      <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border shadow-sm"><p class="text-xs text-gray-500">Financeiro</p><p class="text-2xl font-bold" id="c-financeiro">0</p></div>
+    </div>
 
-            <!-- Card Turmas -->
-            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm card-hover transition-all cursor-pointer" onclick="window.location.href='turmas.html'">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-sm text-gray-500 font-medium">Turmas</p>
-                        <h3 class="text-3xl font-bold mt-1" id="dash-turmas">0</h3>
-                    </div>
-                    <div class="p-3 bg-blue-100 text-blue-600 rounded-lg">
-                        <i data-lucide="graduation-cap" class="w-6 h-6"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card Aulas CEFR -->
-            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm card-hover transition-all cursor-pointer" onclick="window.location.href='cefr.html'">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-sm text-gray-500 font-medium">Aulas CEFR</p>
-                        <h3 class="text-3xl font-bold mt-1" id="dash-cefr">0</h3>
-                    </div>
-                    <div class="p-3 bg-green-100 text-green-600 rounded-lg">
-                        <i data-lucide="file-text" class="w-6 h-6"></i>
-                    </div>
-                </div>
-            </div>
-
-             <!-- Card Agenda -->
-             <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm card-hover transition-all cursor-pointer" onclick="window.location.href='agenda.html'">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-sm text-gray-500 font-medium">Aulas Agendadas</p>
-                        <h3 class="text-3xl font-bold mt-1" id="dash-agenda">0</h3>
-                    </div>
-                    <div class="p-3 bg-orange-100 text-orange-600 rounded-lg">
-                        <i data-lucide="calendar" class="w-6 h-6"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card Concluídas -->
-            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm card-hover transition-all">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-sm text-gray-500 font-medium">Concluídas</p>
-                        <h3 class="text-3xl font-bold mt-1 text-green-600" id="dash-concluidas">0</h3>
-                    </div>
-                    <div class="p-3 bg-green-50 text-green-500 rounded-lg">
-                        <i data-lucide="check-circle" class="w-6 h-6"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card Em Andamento -->
-            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm card-hover transition-all">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-sm text-gray-500 font-medium">Em Andamento</p>
-                        <h3 class="text-3xl font-bold mt-1 text-orange-500" id="dash-andamento">0</h3>
-                    </div>
-                    <div class="p-3 bg-orange-50 text-orange-500 rounded-lg">
-                        <i data-lucide="clock" class="w-6 h-6"></i>
-                    </div>
-                </div>
-            </div>
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border shadow-sm">
+      <h3 class="font-semibold mb-4 flex items-center gap-2"><i data-lucide="wallet" class="h-4 w-4 text-purple-500"></i> Resumo Financeiro</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+          <p class="text-sm text-green-700 dark:text-green-400 font-medium">Entradas</p>
+          <p class="text-2xl font-bold text-green-700 dark:text-green-400" id="f-entradas">R$ 0,00</p>
         </div>
-
-        <!-- Resumo Financeiro -->
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-8">
-            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                <i data-lucide="wallet" class="w-5 h-5 text-purple-600"></i> Resumo Financeiro
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-green-50 p-4 rounded-lg border border-green-100">
-                    <p class="text-sm text-green-700 font-medium flex items-center gap-1"><i data-lucide="arrow-up-right" class="w-4 h-4"></i> Entradas</p>
-                    <p class="text-2xl font-bold text-green-700 mt-1" id="dash-entradas">R$ 0,00</p>
-                </div>
-                <div class="bg-red-50 p-4 rounded-lg border border-red-100">
-                    <p class="text-sm text-red-700 font-medium flex items-center gap-1"><i data-lucide="arrow-down-right" class="w-4 h-4"></i> Saídas</p>
-                    <p class="text-2xl font-bold text-red-700 mt-1" id="dash-saidas">R$ 0,00</p>
-                </div>
-                <div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
-                    <p class="text-sm text-purple-700 font-medium flex items-center gap-1"><i data-lucide="dollar-sign" class="w-4 h-4"></i> Saldo</p>
-                    <p class="text-2xl font-bold text-purple-700 mt-1" id="dash-saldo">R$ 0,00</p>
-                </div>
-            </div>
+        <div class="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+          <p class="text-sm text-red-700 dark:text-red-400 font-medium">Saídas</p>
+          <p class="text-2xl font-bold text-red-700 dark:text-red-400" id="f-saidas">R$ 0,00</p>
         </div>
-
-        <!-- Distribuição CEFR -->
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-8">
-            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                <i data-lucide="bar-chart-2" class="w-5 h-5 text-purple-600"></i> Distribuição CEFR
-            </h3>
-            <div class="space-y-3" id="dash-cefr-bars">
-                <!-- Barras injetadas via JS -->
-            </div>
+        <div class="p-4 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
+          <p class="text-sm text-purple-700 dark:text-purple-400 font-medium">Saldo</p>
+          <p class="text-2xl font-bold text-purple-700 dark:text-purple-400" id="f-saldo">R$ 0,00</p>
         </div>
+      </div>
+    </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Alunos Recentes -->
-            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-                <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <i data-lucide="user-plus" class="w-5 h-5 text-purple-600"></i> Alunos Recentes
-                </h3>
-                <div id="dash-recent-students" class="space-y-3">
-                    <p class="text-gray-400 text-sm text-center py-4">Nenhum aluno cadastrado.</p>
-                </div>
-            </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border shadow-sm">
+        <h3 class="font-semibold mb-4 flex items-center gap-2"><i data-lucide="users" class="h-4 w-4 text-purple-500"></i> Alunos Recentes</h3>
+        <div id="recent-students" class="space-y-2"><p class="text-sm text-gray-400 text-center py-4">Nenhum aluno cadastrado</p></div>
+      </div>
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border shadow-sm">
+        <h3 class="font-semibold mb-4 flex items-center gap-2"><i data-lucide="calendar" class="h-4 w-4 text-purple-500"></i> Próximas Aulas</h3>
+        <div id="upcoming-classes" class="space-y-2"><p class="text-sm text-gray-400 text-center py-4">Nenhuma aula agendada</p></div>
+      </div>
+    </div>
+  </main>
 
-            <!-- Próximas Aulas -->
-            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-                <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <i data-lucide="calendar-clock" class="w-5 h-5 text-purple-600"></i> Próximas Aulas
-                </h3>
-                <div id="dash-upcoming" class="space-y-3">
-                    <p class="text-gray-400 text-sm text-center py-4">Nenhuma aula agendada.</p>
-                </div>
-            </div>
-        </div>
+  <footer class="mt-auto border-t py-4 text-center text-xs text-gray-500">© <span id="year"></span> Caderno Online</footer>
 
-    </main>
+  <script>
+    // Tema
+    const html = document.documentElement;
+    if(localStorage.getItem('theme')==='dark') html.classList.add('dark');
+    document.getElementById('themeToggle').onclick = () => {
+      html.classList.toggle('dark');
+      localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+    };
 
-    <script>
-        // Lógica simples para carregar dados no dashboard
-        const db = JSON.parse(localStorage.getItem('cadernoDB')) || { alunos: [], turmas: [], cefr: [], agenda: [], financeiro: { entradas: 0, saidas: 0 } };
-        
-        document.getElementById('dash-alunos').innerText = db.alunos.length;
-        document.getElementById('dash-turmas').innerText = db.turmas.length;
-        document.getElementById('dash-cefr').innerText = db.cefr.length;
-        document.getElementById('dash-agenda').innerText = db.agenda.filter(a => a.status === 'agendada').length;
-        document.getElementById('dash-concluidas').innerText = db.agenda.filter(a => a.status === 'concluida').length;
-        document.getElementById('dash-andamento').innerText = db.agenda.filter(a => a.status === 'andamento').length;
+    // Dados
+    const db = JSON.parse(localStorage.getItem('cadernoOnlineDB')) || {alunos:[],turmas:[],cefr:[],material:[],agenda:[],financeiro:{transacoes:[]}};
+    
+    // Contadores
+    document.getElementById('c-alunos').textContent = db.alunos.length;
+    document.getElementById('c-turmas').textContent = db.turmas.length;
+    document.getElementById('c-cefr').textContent = db.cefr.length;
+    document.getElementById('c-material').textContent = db.material.length;
+    document.getElementById('c-agenda').textContent = db.agenda.length;
+    document.getElementById('c-financeiro').textContent = db.financeiro.transacoes.length;
 
-        document.getElementById('dash-entradas').innerText = `R$ ${db.financeiro.entradas.toFixed(2)}`;
-        document.getElementById('dash-saidas').innerText = `R$ ${db.financeiro.saidas.toFixed(2)}`;
-        document.getElementById('dash-saldo').innerText = `R$ ${(db.financeiro.entradas - db.financeiro.saidas).toFixed(2)}`;
+    // Financeiro
+    let entradas=0, saidas=0;
+    db.financeiro.transacoes.forEach(t => t.tipo==='entrada' ? entradas+=t.valor : saidas+=t.valor);
+    const fmt = v => v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+    document.getElementById('f-entradas').textContent = fmt(entradas);
+    document.getElementById('f-saidas').textContent = fmt(saidas);
+    document.getElementById('f-saldo').textContent = fmt(entradas-saidas);
 
-        lucide.createIcons();
-    </script>
+    // Recentes & Agenda
+    const rs = document.getElementById('recent-students');
+    rs.innerHTML = db.alunos.slice(-3).reverse().map(a => `<div class="flex items-center gap-2 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700"><div class="h-8 w-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center text-purple-600 font-bold">${a.nome[0]}</div><div><p class="text-sm font-medium">${a.nome}</p><p class="text-xs text-gray-500">${a.nivel||'N/A'}</p></div></div>`).join('') || '<p class="text-sm text-gray-400 text-center py-4">Nenhum aluno cadastrado</p>';
+
+    const ua = document.getElementById('upcoming-classes');
+    const today = new Date().toISOString().split('T')[0];
+    const upcoming = db.agenda.filter(a => a.data >= today).sort((a,b)=>a.data.localeCompare(b.data)||a.horario.localeCompare(b.horario)).slice(0,3);
+    ua.innerHTML = upcoming.map(a => `<div class="p-3 rounded border bg-gray-50 dark:bg-gray-700"><p class="text-sm font-medium">${a.titulo||'Aula'}</p><p class="text-xs text-gray-500">${new Date(a.data+'T12:00:00').toLocaleDateString('pt-BR')} • ${a.horario}</p></div>`).join('') || '<p class="text-sm text-gray-400 text-center py-4">Nenhuma aula agendada</p>';
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+    lucide.createIcons();
+  </script>
 </body>
 </html>
