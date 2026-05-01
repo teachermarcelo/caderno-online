@@ -4,357 +4,176 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Aulas CEFR — Caderno Online</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238b5cf6'><path d='M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25'/></svg>">
+  <link rel="icon" href="image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238b5cf6'><path d='M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25'/></svg>">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            background: 'hsl(var(--background))',
-            foreground: 'hsl(var(--foreground))',
-            card: 'hsl(var(--card))',
-            muted: 'hsl(var(--muted))',
-            'muted-foreground': 'hsl(var(--muted-foreground))',
-            border: 'hsl(var(--border))',
-          }
-        }
-      }
-    }
-  </script>
+  <script>tailwind.config = { darkMode: 'class' }</script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    :root {
-      --background: 0 0% 100%; --foreground: 222.2 84% 4.9%;
-      --card: 0 0% 100%; --muted: 210 40% 96.1%; --muted-foreground: 215.4 16.3% 46.9%;
-      --border: 214.3 31.8% 91.4%;
-    }
-    .dark {
-      --background: 222.2 84% 4.9%; --foreground: 210 40% 98%;
-      --card: 222.2 84% 4.9%; --muted: 217.2 32.6% 17.5%; --muted-foreground: 215 20.2% 65.1%;
-      --border: 217.2 32.6% 17.5%;
-    }
-    body { font-family: system-ui, -apple-system, sans-serif; }
+    :root { --bg: 0 0% 100%; --fg: 222.2 84% 4.9%; }
+    .dark { --bg: 222.2 84% 4.9%; --fg: 210 40% 98%; }
+    body { background: hsl(var(--bg)); color: hsl(var(--fg)); font-family: system-ui, sans-serif; }
     .modal { opacity: 0; pointer-events: none; transition: opacity 0.2s; }
     .modal.open { opacity: 1; pointer-events: auto; }
-    .lesson-card { transition: all 0.2s; }
-    .lesson-card:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.08); }
-    .level-badge { @apply px-2 py-0.5 text-xs font-medium rounded-full; }
   </style>
 </head>
-<body class="bg-background text-foreground min-h-screen transition-colors duration-300">
-
-  <!-- HEADER -->
-  <header class="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md">
+<body class="min-h-screen transition-colors duration-300">
+  <header class="sticky top-0 z-50 border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-md">
     <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <a href="index.html" class="h-9 w-9 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center hover:opacity-90 transition">
-          <i data-lucide="book-open" class="h-5 w-5 text-white"></i>
-        </a>
+      <a href="index.html" class="flex items-center gap-3">
+        <div class="h-9 w-9 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center"><i data-lucide="book-open" class="h-5 w-5 text-white"></i></div>
         <h1 class="text-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">Caderno Online</h1>
-      </div>
-      <button id="themeToggle" class="inline-flex items-center justify-center size-9 rounded-full bg-muted hover:bg-accent transition focus:outline-none focus:ring-2 focus:ring-purple-500/50" aria-label="Alternar tema">
-        <i data-lucide="sun" class="h-5 w-5 transition-all dark:rotate-90 dark:opacity-0"></i>
-        <i data-lucide="moon" class="h-5 w-5 transition-all -rotate-90 opacity-0 dark:rotate-0 dark:opacity-100 absolute"></i>
-      </button>
+      </a>
+      <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition"><i data-lucide="sun" class="hidden dark:block h-5 w-5"></i><i data-lucide="moon" class="block dark:hidden h-5 w-5"></i></button>
     </div>
   </header>
 
-  <!-- MAIN -->
-  <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-      <div>
-        <h2 class="text-2xl font-bold flex items-center gap-2">
-          <i data-lucide="book-marked" class="h-6 w-6 text-green-500"></i>
-          Aulas CEFR
-        </h2>
-        <p class="text-muted-foreground text-sm mt-1">Lessons organizadas por nível A1-C2 com áudio e links</p>
-      </div>
-      <button onclick="openModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition focus:outline-none focus:ring-2 focus:ring-green-500/50">
-        <i data-lucide="plus" class="h-4 w-4"></i> Nova Aula
-      </button>
+  <main class="max-w-7xl mx-auto px-4 py-6">
+    <div class="flex justify-between items-center mb-6">
+      <div><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="book-marked" class="h-6 w-6 text-green-500"></i> Aulas CEFR</h2><p class="text-sm text-gray-500 mt-1">Lessons organizadas por nível A1-C2</p></div>
+      <button onclick="openModal()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition flex items-center gap-2"><i data-lucide="plus" class="h-4 w-4"></i> Nova Aula</button>
     </div>
-
-    <!-- Filters -->
-    <div class="flex flex-col sm:flex-row gap-3 mb-6">
-      <div class="relative flex-1">
-        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"></i>
-        <input type="text" id="searchInput" placeholder="Buscar aula por título..." class="w-full pl-10 pr-4 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-green-500/50">
-      </div>
-      <select id="levelFilter" class="px-4 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-green-500/50">
-        <option value="">Todos os níveis</option>
-        <option value="A1">A1</option><option value="A2">A2</option><option value="B1">B1</option>
-        <option value="B2">B2</option><option value="C1">C1</option><option value="C2">C2</option>
-      </select>
-    </div>
-
-    <!-- Lessons List -->
-    <div id="lessonList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-
-    <!-- Empty State -->
-    <div id="emptyState" class="hidden flex flex-col items-center justify-center py-16 text-center">
-      <div class="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
-        <i data-lucide="book-plus" class="h-8 w-8 text-muted-foreground"></i>
-      </div>
-      <h3 class="text-lg font-semibold mb-2">Nenhuma aula encontrada</h3>
-      <p class="text-muted-foreground max-w-sm">Crie sua primeira lesson CEFR ou ajuste os filtros.</p>
-    </div>
+    <div id="list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    <div id="empty" class="hidden flex-col items-center justify-center py-16 text-center"><div class="h-16 w-16 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4"><i data-lucide="book-plus" class="h-8 w-8 text-gray-400"></i></div><h3 class="text-lg font-semibold mb-2">Nenhuma aula encontrada</h3><p class="text-gray-500 max-w-sm">Crie sua primeira lesson CEFR.</p></div>
   </main>
 
+  <footer class="mt-auto border-t py-4 text-center text-xs text-gray-500">© <span id="year"></span> Caderno Online</footer>
+
   <!-- MODAL -->
-  <div id="lessonModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-    <div class="bg-card rounded-xl border w-full max-w-lg p-6 shadow-xl">
-      <div class="flex justify-between items-center mb-4">
-        <h3 id="modalTitle" class="text-lg font-semibold">Nova Aula CEFR</h3>
-        <button onclick="closeModal()" class="p-1 hover:bg-muted rounded-full transition"><i data-lucide="x" class="h-5 w-5"></i></button>
-      </div>
-      <form id="lessonForm" class="space-y-4">
-        <input type="hidden" id="lessonId">
-        <div>
-          <label class="block text-sm font-medium mb-1">Título *</label>
-          <input type="text" id="titulo" required class="w-full px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-green-500/50" placeholder="Ex: Greetings & Introductions">
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Descrição</label>
-          <textarea id="descricao" rows="2" class="w-full px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-green-500/50"></textarea>
-        </div>
+  <div id="modal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div class="bg-white dark:bg-gray-800 rounded-xl border w-full max-w-lg p-6 shadow-xl">
+      <div class="flex justify-between items-center mb-4"><h3 id="m-title" class="text-lg font-semibold">Nova Aula</h3><button onclick="closeModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"><i data-lucide="x" class="h-5 w-5"></i></button></div>
+      <form id="form" class="space-y-4">
+        <input type="hidden" id="id">
+        <div><label class="block text-sm font-medium mb-1">Título *</label><input type="text" id="titulo" required class="w-full px-3 py-2 rounded-lg border bg-gray-50 dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500/50"></div>
+        <div><label class="block text-sm font-medium mb-1">Descrição</label><textarea id="descricao" rows="2" class="w-full px-3 py-2 rounded-lg border bg-gray-50 dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500/50"></textarea></div>
         <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-sm font-medium mb-1">Nível</label>
-            <select id="nivel" class="w-full px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-green-500/50">
-              <option value="A1">A1</option><option value="A2">A2</option><option value="B1">B1</option>
-              <option value="B2">B2</option><option value="C1">C1</option><option value="C2">C2</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">Turma (opcional)</label>
-            <select id="turma" class="w-full px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-green-500/50">
-              <option value="">Nenhuma</option>
-            </select>
-          </div>
+          <div><label class="block text-sm font-medium mb-1">Nível</label><select id="nivel" class="w-full px-3 py-2 rounded-lg border bg-gray-50 dark:bg-gray-700 dark:border-gray-600"><option value="A1">A1</option><option value="A2">A2</option><option value="B1">B1</option><option value="B2">B2</option><option value="C1">C1</option><option value="C2">C2</option></select></div>
+          <div><label class="block text-sm font-medium mb-1">Turma (opcional)</label><select id="turma" class="w-full px-3 py-2 rounded-lg border bg-gray-50 dark:bg-gray-700 dark:border-gray-600"><option value="">Nenhuma</option></select></div>
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1">Links / Recursos</label>
-          <div id="linksContainer" class="space-y-2">
-            <div class="flex gap-2">
-              <input type="text" class="link-url flex-1 px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-green-500/50" placeholder="URL do recurso">
-              <input type="text" class="link-label w-32 px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-green-500/50" placeholder="Rótulo">
-              <button type="button" onclick="removeLink(this)" class="p-2 text-red-500 hover:bg-red-50 rounded transition"><i data-lucide="x" class="h-4 w-4"></i></button>
-            </div>
-          </div>
-          <button type="button" onclick="addLink()" class="mt-2 text-sm text-green-600 hover:text-green-700 flex items-center gap-1">
-            <i data-lucide="plus" class="h-3 w-3"></i> Adicionar link
-          </button>
+          <label class="block text-sm font-medium mb-1">Links & Recursos</label>
+          <div id="links-box" class="space-y-2 mb-2"></div>
+          <button type="button" onclick="addLink()" class="text-sm text-green-600 hover:text-green-700 flex items-center gap-1"><i data-lucide="plus-circle" class="w-4 h-4"></i> Adicionar Link</button>
         </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Conteúdo</label>
-          <textarea id="conteudo" rows="4" class="w-full px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-green-500/50" placeholder="Vocabulário, exercícios, notas..."></textarea>
-        </div>
-        <div class="flex gap-3 pt-2">
-          <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border rounded-lg hover:bg-muted transition">Cancelar</button>
-          <button type="submit" class="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg font-medium transition">Salvar</button>
-        </div>
+        <div><label class="block text-sm font-medium mb-1">Conteúdo</label><textarea id="conteudo" rows="3" class="w-full px-3 py-2 rounded-lg border bg-gray-50 dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500/50"></textarea></div>
+        <div class="flex gap-3 pt-2"><button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">Cancelar</button><button type="submit" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition">Salvar</button></div>
       </form>
     </div>
   </div>
 
-  <!-- FOOTER -->
-  <footer class="mt-auto border-t bg-background/80 backdrop-blur-md py-4">
-    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-muted-foreground">
-      © <span id="year"></span> Caderno Online — Plataforma de Ensino de Idiomas
-    </div>
-  </footer>
-
   <script>
-    const $ = (sel) => document.querySelector(sel);
-    const $$ = (sel) => document.querySelectorAll(sel);
-    const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
-
-    // THEME
-    const themeToggle = $('#themeToggle');
+    // DB & UI
     const html = document.documentElement;
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) html.classList.add('dark');
-    themeToggle.addEventListener('click', () => {
-      html.classList.toggle('dark');
-      localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
-    });
+    if(localStorage.getItem('theme')==='dark') html.classList.add('dark');
+    document.getElementById('themeToggle').onclick = () => { html.classList.toggle('dark'); localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light'); };
+    document.getElementById('year').textContent = new Date().getFullYear();
 
-    // DATA
-    const defaultData = { alunos: [], turmas: [], cefr: [], financeiro: {entradas:0,saidas:0}, agenda: [] };
-    function loadData() {
-      const stored = localStorage.getItem('cadernoOnlineData');
-      return stored ? JSON.parse(stored) : defaultData;
-    }
-    function saveData(data) {
-      localStorage.setItem('cadernoOnlineData', JSON.stringify(data));
-      renderLessons();
-      updateTurmaSelect();
-    }
+    function loadDB() { const s = localStorage.getItem('cadernoOnlineDB'); return s ? JSON.parse(s) : {alunos:[],turmas:[],cefr:[],material:[],agenda:[],financeiro:{transacoes:[]}}; }
+    function saveDB(db) { localStorage.setItem('cadernoOnlineDB', JSON.stringify(db)); render(); }
 
-    // RENDER
-    function renderLessons() {
-      const data = loadData();
-      const search = $('#searchInput').value.toLowerCase().trim();
-      const level = $('#levelFilter').value;
-
-      let filtered = data.cefr.filter(l => {
-        const matchSearch = !search || l.titulo.toLowerCase().includes(search) || (l.descricao||'').toLowerCase().includes(search);
-        const matchLevel = !level || l.nivel === level;
-        return matchSearch && matchLevel;
-      });
-
-      const listEl = $('#lessonList');
-      const emptyEl = $('#emptyState');
+    function render() {
+      const db = loadDB();
+      const list = document.getElementById('list');
+      const empty = document.getElementById('empty');
+      if(db.cefr.length===0) { list.innerHTML=''; empty.classList.remove('hidden'); empty.classList.add('flex'); return; }
+      empty.classList.add('hidden'); empty.classList.remove('flex');
       
-      if (filtered.length === 0) { listEl.innerHTML = ''; emptyEl.classList.remove('hidden'); return; }
-      emptyEl.classList.add('hidden');
-
-      const levelColors = { A1:'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', A2:'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400', B1:'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400', B2:'bg-lime-100 text-lime-700 dark:bg-lime-900/30 dark:text-lime-400', C1:'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', C2:'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' };
-
-      listEl.innerHTML = filtered.map(l => {
-        const turma = data.turmas.find(t => t.id === l.turmaId);
-        return `
-        <div class="lesson-card bg-card rounded-xl border p-4 flex flex-col gap-3">
-          <div class="flex justify-between items-start">
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-1">
-                <h4 class="font-semibold text-lg">${l.titulo}</h4>
-                <span class="px-2 py-0.5 text-xs font-medium rounded-full ${levelColors[l.nivel]}">${l.nivel}</span>
-              </div>
-              ${l.descricao ? `<p class="text-sm text-muted-foreground line-clamp-2">${l.descricao}</p>` : ''}
-            </div>
-            <div class="flex gap-1">
-              <button onclick="editLesson('${l.id}')" class="p-1.5 hover:bg-muted rounded transition" title="Editar"><i data-lucide="pencil" class="h-4 w-4"></i></button>
-              <button onclick="deleteLesson('${l.id}')" class="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 rounded transition" title="Excluir"><i data-lucide="trash-2" class="h-4 w-4"></i></button>
-            </div>
+      list.innerHTML = db.cefr.map((c,i) => {
+        let linksHtml = '';
+        if(c.links?.length) {
+          linksHtml = '<div class="mt-3 pt-3 border-t flex flex-wrap gap-2">' + c.links.map(l => {
+            const icon = l.tipo==='video' ? 'youtube' : l.tipo==='pdf' ? 'file-text' : 'link';
+            const color = l.tipo==='video' ? 'text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400' : l.tipo==='pdf' ? 'text-orange-600 bg-orange-50 dark:bg-orange-900/20 dark:text-orange-400' : 'text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400';
+            return `<a href="${l.url}" target="_blank" class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${color} hover:opacity-80"><i data-lucide="${icon}" class="w-3 h-3"></i> ${l.label}</a>`;
+          }).join('') + '</div>';
+        }
+        return `<div class="bg-white dark:bg-gray-800 p-4 rounded-xl border shadow-sm hover:shadow-md transition relative group">
+          <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition flex gap-1">
+            <button onclick="edit(${i})" class="p-1.5 bg-gray-100 dark:bg-gray-700 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600"><i data-lucide="pencil" class="h-3.5 w-3.5"></i></button>
+            <button onclick="del(${i})" class="p-1.5 bg-gray-100 dark:bg-gray-700 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600"><i data-lucide="trash-2" class="h-3.5 w-3.5"></i></button>
           </div>
-          <div class="text-sm space-y-1 text-muted-foreground pt-2 border-t">
-            ${turma ? `<p class="flex items-center gap-1.5"><i data-lucide="users" class="h-3.5 w-3.5"></i> ${turma.nome}</p>` : ''}
-            ${l.links?.length ? `<p class="flex items-center gap-1.5"><i data-lucide="link" class="h-3.5 w-3.5"></i> ${l.links.length} recurso(s)</p>` : ''}
-            <p class="flex items-center gap-1.5"><i data-lucide="calendar" class="h-3.5 w-3.5"></i> ${new Date(l.criadoEm).toLocaleDateString('pt-BR')}</p>
-          </div>
-          ${l.conteudo ? `<div class="pt-2 border-t text-sm whitespace-pre-line bg-muted/50 p-3 rounded-lg max-h-32 overflow-y-auto">${l.conteudo}</div>` : ''}
+          <h4 class="font-semibold text-lg">${c.titulo}</h4>
+          <span class="text-xs px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 font-medium">${c.nivel}</span>
+          ${c.descricao ? `<p class="text-sm text-gray-500 mt-2 line-clamp-2">${c.descricao}</p>` : ''}
+          ${linksHtml}
+          ${c.conteudo ? `<div class="mt-3 p-3 bg-gray-50 dark:bg-gray-700 rounded text-sm whitespace-pre-line max-h-24 overflow-y-auto">${c.conteudo}</div>` : ''}
         </div>`;
       }).join('');
       lucide.createIcons();
     }
 
-    function updateTurmaSelect() {
-      const data = loadData();
-      const select = $('#turma');
-      const currentVal = select.value;
-      select.innerHTML = '<option value="">Nenhuma</option>' + data.turmas.map(t => `<option value="${t.id}">${t.nome} (${t.nivel||'N/A'})</option>`).join('');
-      select.value = currentVal;
+    // Modal & Form
+    function openModal(id=null) {
+      document.getElementById('modal').classList.add('open');
+      document.getElementById('m-title').textContent = id ? 'Editar Aula' : 'Nova Aula';
+      document.getElementById('form').reset();
+      document.getElementById('id').value = id ?? '';
+      document.getElementById('links-box').innerHTML = '';
+      addLink();
+      // Populate turma select
+      const db = loadDB();
+      const sel = document.getElementById('turma');
+      sel.innerHTML = '<option value="">Nenhuma</option>' + db.turmas.map(t => `<option value="${t.id}">${t.nome}</option>`).join('');
+      if(id!==null) {
+        const c = db.cefr[id];
+        document.getElementById('titulo').value = c.titulo;
+        document.getElementById('descricao').value = c.descricao||'';
+        document.getElementById('nivel').value = c.nivel;
+        document.getElementById('turma').value = c.turmaId||'';
+        document.getElementById('conteudo').value = c.conteudo||'';
+        document.getElementById('links-box').innerHTML = '';
+        (c.links||[]).forEach(l => addLink(l.url, l.label, l.tipo));
+      }
     }
-
-    // LINKS
-    function addLink(url = '', label = '') {
+    function closeModal() { document.getElementById('modal').classList.remove('open'); }
+    function addLink(url='',label='',tipo='link') {
       const div = document.createElement('div');
-      div.className = 'flex gap-2';
+      div.className = 'flex gap-2 items-center';
       div.innerHTML = `
-        <input type="text" value="${url}" class="link-url flex-1 px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-green-500/50" placeholder="URL">
-        <input type="text" value="${label}" class="link-label w-32 px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-green-500/50" placeholder="Rótulo">
-        <button type="button" onclick="removeLink(this)" class="p-2 text-red-500 hover:bg-red-50 rounded transition"><i data-lucide="x" class="h-4 w-4"></i></button>
-      `;
-      $('#linksContainer').appendChild(div);
+        <select class="link-tipo border rounded p-1.5 text-sm w-24 bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+          <option value="link" ${tipo==='link'?'selected':''}>Link</option>
+          <option value="video" ${tipo==='video'?'selected':''}>Vídeo</option>
+          <option value="pdf" ${tipo==='pdf'?'selected':''}>PDF</option>
+        </select>
+        <input type="text" placeholder="URL" class="link-url flex-1 px-3 py-1.5 rounded border bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-sm" value="${url}">
+        <input type="text" placeholder="Rótulo" class="link-label w-24 px-3 py-1.5 rounded border bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-sm" value="${label}">
+        <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 rounded"><i data-lucide="x" class="w-4 h-4"></i></button>`;
+      document.getElementById('links-box').appendChild(div);
       lucide.createIcons();
     }
-
-    function removeLink(btn) {
-      const container = $('#linksContainer');
-      if (container.children.length > 1) btn.parentElement.remove();
-      else btn.parentElement.querySelector('.link-url').value = '';
-    }
-
-    // MODAL
-    function openModal(id = null) {
-      $('#lessonModal').classList.add('open');
-      $('#modalTitle').textContent = id ? 'Editar Aula' : 'Nova Aula CEFR';
-      $('#lessonId').value = id || '';
-      $('#lessonForm').reset();
-      $('#linksContainer').innerHTML = `
-        <div class="flex gap-2">
-          <input type="text" class="link-url flex-1 px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-green-500/50" placeholder="URL do recurso">
-          <input type="text" class="link-label w-32 px-3 py-2 rounded-lg border bg-card focus:outline-none focus:ring-2 focus:ring-green-500/50" placeholder="Rótulo">
-          <button type="button" onclick="removeLink(this)" class="p-2 text-red-500 hover:bg-red-50 rounded transition"><i data-lucide="x" class="h-4 w-4"></i></button>
-        </div>`;
-      updateTurmaSelect();
-      lucide.createIcons();
-
-      if (id) {
-        const data = loadData();
-        const l = data.cefr.find(x => x.id === id);
-        if (l) {
-          $('#titulo').value = l.titulo;
-          $('#descricao').value = l.descricao || '';
-          $('#nivel').value = l.nivel || 'A1';
-          $('#turma').value = l.turmaId || '';
-          $('#conteudo').value = l.conteudo || '';
-          setTimeout(() => {
-            $('#linksContainer').innerHTML = '';
-            if (l.links?.length) l.links.forEach(link => addLink(link.url, link.label));
-            else addLink();
-          }, 50);
-        }
-      }
-    }
-
-    function closeModal() { $('#lessonModal').classList.remove('open'); }
-
-    $('#lessonForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const data = loadData();
-      const id = $('#lessonId').value;
-      const links = Array.from($$('#linksContainer .flex')).map(row => ({
+    function getLinks() {
+      return Array.from(document.getElementById('links-box').children).map(row => ({
+        tipo: row.querySelector('.link-tipo').value,
         url: row.querySelector('.link-url').value.trim(),
-        label: row.querySelector('.link-label').value.trim()
+        label: row.querySelector('.link-label').value.trim() || 'Acessar'
       })).filter(l => l.url);
+    }
 
-      const lessonData = {
-        id: id || generateId(),
-        titulo: $('#titulo').value.trim(),
-        descricao: $('#descricao').value.trim(),
-        nivel: $('#nivel').value,
-        turmaId: $('#turma').value || null,
-        conteudo: $('#conteudo').value.trim(),
-        links,
-        atualizadoEm: new Date().toISOString()
+    document.getElementById('form').addEventListener('submit', e => {
+      e.preventDefault();
+      const db = loadDB();
+      const id = document.getElementById('id').value;
+      const data = {
+        id: id || crypto.randomUUID(),
+        titulo: document.getElementById('titulo').value.trim(),
+        descricao: document.getElementById('descricao').value.trim(),
+        nivel: document.getElementById('nivel').value,
+        turmaId: document.getElementById('turma').value || null,
+        conteudo: document.getElementById('conteudo').value.trim(),
+        links: getLinks()
       };
-
-      if (id) {
-        const idx = data.cefr.findIndex(x => x.id === id);
-        if (idx !== -1) data.cefr[idx] = { ...data.cefr[idx], ...lessonData };
-      } else {
-        lessonData.criadoEm = new Date().toISOString();
-        data.cefr.push(lessonData);
-      }
-
-      saveData(data);
+      if(id) { const i = db.cefr.findIndex(c=>c.id===id); if(i!==-1) db.cefr[i] = data; }
+      else db.cefr.push(data);
+      saveDB(db);
       closeModal();
     });
 
-    function editLesson(id) { openModal(id); }
-    function deleteLesson(id) {
-      if (!confirm('Tem certeza que deseja excluir esta aula?')) return;
-      const data = loadData();
-      data.cefr = data.cefr.filter(l => l.id !== id);
-      saveData(data);
-    }
+    function edit(i) { openModal(i); }
+    function del(i) { if(confirm('Excluir esta aula?')) { const db=loadDB(); db.cefr.splice(i,1); saveDB(db); } }
+    document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+    document.getElementById('modal').addEventListener('click', e => { if(e.target.id==='modal') closeModal(); });
 
-    // EVENTS
-    $('#searchInput').addEventListener('input', renderLessons);
-    $('#levelFilter').addEventListener('change', renderLessons);
-    document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModal(); });
-    $('#lessonModal').addEventListener('click', (e) => { if(e.target === $('#lessonModal')) closeModal(); });
-
-    // INIT
-    document.addEventListener('DOMContentLoaded', () => {
-      $('#year').textContent = new Date().getFullYear();
-      lucide.createIcons();
-      renderLessons();
-    });
+    render();
   </script>
 </body>
 </html>
