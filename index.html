@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Caderno Online - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Link para os ícones -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-gray-50 min-h-screen font-sans">
+<body class="bg-gray-50 min-h-screen">
 
-    <!-- Navegação Superior -->
+    <!-- Navegação -->
     <nav class="bg-white border-b sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex justify-between h-16 items-center">
@@ -23,28 +22,30 @@
                     </h1>
                 </div>
                 <div class="flex gap-2">
-                    <a href="index.html" class="px-4 py-2 rounded-lg hover:bg-gray-100 flex items-center gap-2"><i data-lucide="home" class="w-4 h-4"></i> Home</a>
-                    <a href="alunos.html" class="px-4 py-2 rounded-lg hover:bg-gray-100 flex items-center gap-2"><i data-lucide="users" class="w-4 h-4"></i> Alunos</a>
-                    <a href="turmas.html" class="px-4 py-2 rounded-lg hover:bg-gray-100 flex items-center gap-2"><i data-lucide="graduation-cap" class="w-4 h-4"></i> Turmas</a>
-                    <a href="financeiro.html" class="px-4 py-2 rounded-lg hover:bg-gray-100 flex items-center gap-2"><i data-lucide="wallet" class="w-4 h-4"></i> Financeiro</a>
+                    <a href="index.html" class="px-4 py-2 rounded-lg hover:bg-gray-100"><i data-lucide="home" class="w-5 h-5"></i></a>
+                    <a href="alunos.html" class="px-4 py-2 rounded-lg hover:bg-gray-100"><i data-lucide="users" class="w-5 h-5"></i></a>
+                    <a href="turmas.html" class="px-4 py-2 rounded-lg hover:bg-gray-100"><i data-lucide="graduation-cap" class="w-5 h-5"></i></a>
+                    <a href="cefr.html" class="px-4 py-2 rounded-lg hover:bg-gray-100"><i data-lucide="file-text" class="w-5 h-5"></i></a>
+                    <a href="material.html" class="px-4 py-2 rounded-lg hover:bg-gray-100"><i data-lucide="link" class="w-5 h-5"></i></a>
+                    <a href="agenda.html" class="px-4 py-2 rounded-lg hover:bg-gray-100"><i data-lucide="calendar" class="w-5 h-5"></i></a>
+                    <a href="financeiro.html" class="px-4 py-2 rounded-lg hover:bg-gray-100"><i data-lucide="wallet" class="w-5 h-5"></i></a>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Conteúdo Principal com Abas -->
+    <!-- Tabs -->
     <div class="max-w-7xl mx-auto px-4 py-6">
-        
-        <!-- Botões das Abas -->
         <div class="bg-gray-100 p-1 rounded-xl flex gap-1 mb-6">
-            <button onclick="openTab('resumo', this)" class="tab-btn bg-white text-purple-600 font-semibold flex-1 py-2 px-4 rounded-lg text-sm transition">📊 Resumo</button>
-            <button onclick="openTab('alunos', this)" class="tab-btn text-gray-600 flex-1 py-2 px-4 rounded-lg text-sm transition">👥 Alunos</button>
-            <button onclick="openTab('financeiro', this)" class="tab-btn text-gray-600 flex-1 py-2 px-4 rounded-lg text-sm transition">💰 Financeiro</button>
+            <button onclick="showTab('resumo')" class="tab-btn active flex-1 py-2 px-4 rounded-lg text-sm font-medium transition">📊 Resumo</button>
+            <button onclick="showTab('alunos')" class="tab-btn flex-1 py-2 px-4 rounded-lg text-sm font-medium transition">👥 Alunos</button>
+            <button onclick="showTab('turmas')" class="tab-btn flex-1 py-2 px-4 rounded-lg text-sm font-medium transition">🎓 Turmas</button>
+            <button onclick="showTab('financeiro')" class="tab-btn flex-1 py-2 px-4 rounded-lg text-sm font-medium transition">💰 Financeiro</button>
+            <button onclick="showTab('agenda')" class="tab-btn flex-1 py-2 px-4 rounded-lg text-sm font-medium transition">📅 Agenda</button>
         </div>
 
-        <!-- Conteúdo: Resumo -->
-        <div id="resumo" class="tab-content active space-y-6">
-            <!-- Cards de Estatísticas -->
+        <!-- TAB: RESUMO -->
+        <div id="tab-resumo" class="tab-content active space-y-6">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="bg-white p-4 rounded-xl border shadow-sm">
                     <div class="flex items-center gap-3">
@@ -72,35 +73,47 @@
                 </div>
             </div>
 
-            <!-- Resumo Financeiro Rápido -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-white p-6 rounded-xl border shadow-sm">
-                    <h3 class="font-semibold mb-4 flex items-center gap-2"><i data-lucide="wallet" class="w-5 h-5 text-purple-600"></i> Movimentações</h3>
-                    <div class="space-y-2" id="lista-transacoes">
-                        <!-- Preenchido pelo app.js -->
-                    </div>
+                    <h3 class="font-semibold mb-4 flex items-center gap-2"><i data-lucide="users" class="w-5 h-5 text-purple-600"></i> Últimos Alunos</h3>
+                    <div id="dash-ultimos-alunos" class="space-y-2"></div>
                 </div>
                 <div class="bg-white p-6 rounded-xl border shadow-sm">
-                    <h3 class="font-semibold mb-4 flex items-center gap-2"><i data-lucide="users" class="w-5 h-5 text-purple-600"></i> Últimos Alunos</h3>
-                    <div class="space-y-2" id="lista-alunos-dashboard">
-                        <!-- Preenchido pelo app.js -->
-                    </div>
+                    <h3 class="font-semibold mb-4 flex items-center gap-2"><i data-lucide="calendar" class="w-5 h-5 text-purple-600"></i> Próximas Aulas</h3>
+                    <div id="dash-proximas-aulas" class="space-y-2"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Conteúdo: Aba Alunos -->
-        <div id="alunos" class="tab-content space-y-6">
+        <!-- TAB: ALUNOS -->
+        <div id="tab-alunos" class="tab-content">
             <div class="bg-white rounded-xl border shadow-sm p-6">
-                <h2 class="text-xl font-bold mb-4">Lista de Alunos</h2>
-                <div id="dash-alunos-list" class="text-gray-500">Gerencie seus alunos na aba Alunos > Adicionar.</div>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">Lista de Alunos</h2>
+                    <a href="alunos.html" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">+ Novo Aluno</a>
+                </div>
+                <div id="lista-alunos-dashboard" class="space-y-2"></div>
             </div>
         </div>
 
-        <!-- Conteúdo: Aba Financeiro -->
-        <div id="financeiro" class="tab-content space-y-6">
+        <!-- TAB: TURMAS -->
+        <div id="tab-turmas" class="tab-content">
             <div class="bg-white rounded-xl border shadow-sm p-6">
-                <h2 class="text-xl font-bold mb-4">Visão Financeira</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">Turmas Cadastradas</h2>
+                    <a href="turmas.html" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">+ Nova Turma</a>
+                </div>
+                <div id="lista-turmas-dashboard" class="space-y-2"></div>
+            </div>
+        </div>
+
+        <!-- TAB: FINANCEIRO -->
+        <div id="tab-financeiro" class="tab-content">
+            <div class="bg-white rounded-xl border shadow-sm p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">Movimentações Financeiras</h2>
+                    <a href="financeiro.html" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">+ Nova Entrada</a>
+                </div>
                 <div class="grid grid-cols-3 gap-4 mb-6">
                     <div class="p-4 bg-green-50 rounded-lg border border-green-200">
                         <p class="text-sm text-green-700">Entradas</p>
@@ -115,12 +128,154 @@
                         <p class="text-2xl font-bold text-purple-700" id="fin-saldo">R$ 0,00</p>
                     </div>
                 </div>
+                <div id="lista-transacoes" class="space-y-2"></div>
             </div>
         </div>
 
+        <!-- TAB: AGENDA -->
+        <div id="tab-agenda" class="tab-content">
+            <div class="bg-white rounded-xl border shadow-sm p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">Agenda de Aulas</h2>
+                    <a href="agenda.html" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700">+ Agendar Aula</a>
+                </div>
+                <div id="lista-agenda-dashboard" class="space-y-2"></div>
+            </div>
+        </div>
     </div>
 
-    <!-- AQUI ESTÁ A MÁGICA: Link para o arquivo JS separado -->
-    <script src="app.js"></script>
+    <script>
+        // Banco de dados unificado
+        const DB_KEY = 'cadernoOnlineDB';
+        
+        function getDB() {
+            const data = localStorage.getItem(DB_KEY);
+            return data ? JSON.parse(data) : {
+                alunos: [],
+                turmas: [],
+                cefr: [],
+                material: [],
+                agenda: [],
+                financeiro: { entradas: 0, saidas: 0, transacoes: [] }
+            };
+        }
+
+        function saveDB(db) {
+            localStorage.setItem(DB_KEY, JSON.stringify(db));
+            updateDashboard();
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+            event.target.classList.add('active');
+            updateDashboard();
+        }
+
+        function updateDashboard() {
+            const db = getDB();
+            
+            // Atualiza contadores
+            document.getElementById('dash-alunos').textContent = db.alunos.length;
+            document.getElementById('dash-turmas').textContent = db.turmas.length;
+            document.getElementById('dash-cefr').textContent = db.cefr.length;
+            
+            const saldo = db.financeiro.entradas - db.financeiro.saidas;
+            document.getElementById('dash-saldo').textContent = 'R$ ' + saldo.toFixed(2);
+            document.getElementById('fin-entradas').textContent = 'R$ ' + db.financeiro.entradas.toFixed(2);
+            document.getElementById('fin-saidas').textContent = 'R$ ' + db.financeiro.saidas.toFixed(2);
+            document.getElementById('fin-saldo').textContent = 'R$ ' + saldo.toFixed(2);
+
+            // Últimos alunos
+            const ultimosAlunos = db.alunos.slice(-5).reverse();
+            document.getElementById('dash-ultimos-alunos').innerHTML = ultimosAlunos.length ? 
+                ultimosAlunos.map(a => `
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold">${a.nome.charAt(0)}</div>
+                        <div><p class="font-medium">${a.nome}</p><p class="text-sm text-gray-500">${a.nivel || 'Nível não definido'}</p></div>
+                    </div>
+                `).join('') : '<p class="text-gray-400 text-center py-4">Nenhum aluno cadastrado</p>';
+
+            // Próximas aulas
+            const hoje = new Date().toISOString().split('T')[0];
+            const proximasAulas = db.agenda.filter(a => a.data >= hoje).sort((a,b) => a.data.localeCompare(b.data)).slice(0,5);
+            document.getElementById('dash-proximas-aulas').innerHTML = proximasAulas.length ?
+                proximasAulas.map(a => `
+                    <div class="p-3 bg-gray-50 rounded-lg border-l-4 border-orange-500">
+                        <p class="font-medium">${a.titulo || 'Aula'}</p>
+                        <p class="text-sm text-gray-500">${new Date(a.data).toLocaleDateString('pt-BR')} • ${a.horario}</p>
+                    </div>
+                `).join('') : '<p class="text-gray-400 text-center py-4">Nenhuma aula agendada</p>';
+
+            // Lista de alunos (tab alunos)
+            document.getElementById('lista-alunos-dashboard').innerHTML = db.alunos.length ?
+                db.alunos.map((a, i) => `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold">${a.nome.charAt(0)}</div>
+                            <div><p class="font-medium">${a.nome}</p><p class="text-sm text-gray-500">${a.nivel || 'N/A'}</p></div>
+                        </div>
+                        <button onclick="deleteAluno(${i})" class="text-red-500 hover:bg-red-50 p-2 rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                `).join('') : '<p class="text-gray-400 text-center py-4">Nenhum aluno cadastrado</p>';
+
+            // Lista de turmas (tab turmas)
+            document.getElementById('lista-turmas-dashboard').innerHTML = db.turmas.length ?
+                db.turmas.map((t, i) => `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                            <p class="font-medium">${t.nome}</p>
+                            <p class="text-sm text-gray-500">${t.nivel || 'Nível não definido'}</p>
+                        </div>
+                        <button onclick="deleteTurma(${i})" class="text-red-500 hover:bg-red-50 p-2 rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                `).join('') : '<p class="text-gray-400 text-center py-4">Nenhuma turma cadastrada</p>';
+
+            // Lista de transações (tab financeiro)
+            document.getElementById('lista-transacoes').innerHTML = db.financeiro.transacoes.length ?
+                db.financeiro.transacoes.slice().reverse().map((t, i) => `
+                    <div class="flex items-center justify-between p-3 ${t.tipo === 'entrada' ? 'bg-green-50' : 'bg-red-50'} rounded-lg">
+                        <div>
+                            <p class="font-medium">${t.descricao}</p>
+                            <p class="text-sm text-gray-500">${new Date(t.data).toLocaleDateString('pt-BR')}</p>
+                        </div>
+                        <p class="font-bold ${t.tipo === 'entrada' ? 'text-green-600' : 'text-red-600'}">
+                            ${t.tipo === 'entrada' ? '+' : '-'} R$ ${parseFloat(t.valor).toFixed(2)}
+                        </p>
+                    </div>
+                `).join('') : '<p class="text-gray-400 text-center py-4">Nenhuma transação registrada</p>';
+
+            // Lista de agenda (tab agenda)
+            document.getElementById('lista-agenda-dashboard').innerHTML = db.agenda.length ?
+                db.agenda.sort((a,b) => a.data.localeCompare(b.data)).map((a, i) => `
+                    <div class="p-3 bg-gray-50 rounded-lg border-l-4 border-orange-500">
+                        <p class="font-medium">${a.titulo || 'Aula'}</p>
+                        <p class="text-sm text-gray-500">${new Date(a.data).toLocaleDateString('pt-BR')} • ${a.horario}</p>
+                    </div>
+                `).join('') : '<p class="text-gray-400 text-center py-4">Nenhuma aula agendada</p>';
+
+            lucide.createIcons();
+        }
+
+        function deleteAluno(index) {
+            if(confirm('Excluir este aluno?')) {
+                const db = getDB();
+                db.alunos.splice(index, 1);
+                saveDB(db);
+            }
+        }
+
+        function deleteTurma(index) {
+            if(confirm('Excluir esta turma?')) {
+                const db = getDB();
+                db.turmas.splice(index, 1);
+                saveDB(db);
+            }
+        }
+
+        // Inicializa
+        updateDashboard();
+    </script>
 </body>
 </html>
