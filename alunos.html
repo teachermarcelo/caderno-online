@@ -8,7 +8,6 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <script>
         tailwind.config = {
@@ -16,12 +15,18 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#8b5cf6', secondary: '#ec4899', success: '#10b981',
-                        warning: '#f59e0b', danger: '#ef4444',
+                        primary: '#8b5cf6',
+                        secondary: '#ec4899',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
                     },
                     animation: { 'float': 'float 3s ease-in-out infinite' },
                     keyframes: {
-                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } }
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
                     }
                 }
             }
@@ -41,28 +46,9 @@
         .modal { opacity: 0; pointer-events: none; transition: opacity 0.2s; }
         .modal.open { opacity: 1; pointer-events: auto; }
         .gradient-text { background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .sync-badge { position: fixed; top: 80px; right: 20px; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 500; display: flex; align-items: center; gap: 6px; z-index: 999; }
-        .sync-badge.ok { background: rgba(16, 185, 129, 0.9); color: white; }
-        .sync-badge.error { background: rgba(239, 68, 68, 0.9); color: white; }
-        .sync-badge.syncing { background: rgba(245, 158, 11, 0.9); color: white; }
-        .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-        .sync-dot.pulse { animation: pulse 1s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-        .debug-panel { position: fixed; bottom: 0; left: 0; right: 0; background: #1e293b; color: #22d3ee; font-family: monospace; font-size: 11px; padding: 8px 12px; max-height: 120px; overflow-y: auto; z-index: 2000; display: none; }
-        .debug-panel.active { display: block; }
     </style>
 </head>
 <body class="text-gray-800 dark:text-gray-200 transition-colors duration-300">
-
-    <!-- Debug Toggle -->
-    <button onclick="toggleDebug()" class="fixed bottom-4 left-4 z-[2001] px-3 py-1.5 bg-gray-800 text-white text-xs rounded-full hover:bg-gray-700 transition">🐛 Debug</button>
-    <div id="debugPanel" class="debug-panel"></div>
-
-    <!-- Sync Badge -->
-    <div id="syncBadge" class="sync-badge ok">
-        <div class="sync-dot" id="syncDot"></div>
-        <span id="syncText">Sincronizado</span>
-    </div>
 
     <!-- Header -->
     <header class="glass-effect sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700 shadow-sm">
@@ -74,21 +60,18 @@
                     </a>
                     <h1 class="text-2xl font-bold gradient-text">Gestão de Alunos</h1>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="syncData()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition" title="Sincronizar">
-                        <i data-lucide="refresh-cw" class="w-5 h-5" id="syncIcon"></i>
-                    </button>
-                    <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 shadow-md">
-                        <i data-lucide="sun" class="w-5 h-5 hidden dark:block text-yellow-400"></i>
-                        <i data-lucide="moon" class="w-5 h-5 block dark:hidden text-gray-600"></i>
-                    </button>
-                </div>
+                <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 shadow-md">
+                    <i data-lucide="sun" class="w-5 h-5 hidden dark:block text-yellow-400"></i>
+                    <i data-lucide="moon" class="w-5 h-5 block dark:hidden text-gray-600"></i>
+                </button>
             </div>
         </div>
     </header>
 
     <!-- Main -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Header Section -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div>
                 <h2 class="text-2xl font-bold text-white">Lista de Alunos</h2>
@@ -115,7 +98,9 @@
         </div>
 
         <!-- Students Grid -->
-        <div id="studentsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        <div id="studentsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Cards injected via JS -->
+        </div>
 
         <!-- Empty State -->
         <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-center">
@@ -134,12 +119,15 @@
                 <h3 id="modalTitle" class="text-lg font-semibold text-gray-800 dark:text-white">Novo Aluno</h3>
                 <button onclick="closeModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
+            
             <form id="studentForm" class="space-y-4">
                 <input type="hidden" id="editId">
+                
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nome Completo *</label>
                     <input type="text" id="nome" required class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
+                
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nível CEFR</label>
@@ -153,6 +141,7 @@
                         <input type="tel" id="telefone" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                     </div>
                 </div>
+                
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Links & Recursos</label>
                     <div id="linksContainer" class="space-y-2 mb-2"></div>
@@ -160,6 +149,7 @@
                         <i data-lucide="plus-circle" class="w-4 h-4"></i> Adicionar Link/Recurso
                     </button>
                 </div>
+                
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">Cancelar</button>
                     <button type="submit" class="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition">Salvar</button>
@@ -182,106 +172,48 @@
         </div>
     </footer>
 
+    <!-- JavaScript -->
     <script>
-        // === CONFIGURAÇÃO ===
-        const SUPABASE_URL = 'https://rvgcniaowzmsudzliozf.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_N_xCS0lbbTvG7qWTpAw0ag_vlg1lbHb';
+        // === BANCO DE DADOS (Mesma estrutura do index.html) ===
         const DB_KEY = 'cadernoOnlineDB';
-        const USE_SUPABASE = true; // Mude para false para usar apenas localStorage
         
-        let supabase = null;
-        let students = [];
-        let useLocalStorage = !USE_SUPABASE;
-
-        // === DEBUG ===
-        function log(msg, type = 'info') {
-            const panel = document.getElementById('debugPanel');
-            const time = new Date().toLocaleTimeString();
-            const colors = { info: '#22d3ee', success: '#4ade80', error: '#f87171', warn: '#fbbf24' };
-            panel.innerHTML += `<div style="color:${colors[type]}">[${time}] ${msg}</div>`;
-            panel.scrollTop = panel.scrollHeight;
-            console.log(`[Alunos] ${msg}`);
-        }
-        function toggleDebug() { document.getElementById('debugPanel').classList.toggle('active'); }
-        function showSyncStatus(message, type = 'ok') {
-            const badge = document.getElementById('syncBadge');
-            const dot = document.getElementById('syncDot');
-            const text = document.getElementById('syncText');
-            text.textContent = message;
-            badge.className = `sync-badge ${type}`;
-            if (type === 'syncing') dot.classList.add('pulse');
-            else dot.classList.remove('pulse');
-        }
-
-        // === INICIALIZAÇÃO DO SUPABASE ===
-        function initSupabase() {
-            try {
-                // CDN do Supabase v2 expõe como global 'supabase', não window.supabase
-                if (typeof window.supabase !== 'undefined') {
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    log('✅ Supabase inicializado', 'success');
-                    return true;
-                } else {
-                    log('⚠️ Supabase CDN não carregou, usando localStorage', 'warn');
-                    useLocalStorage = true;
-                    return false;
-                }
-            } catch (e) {
-                log('❌ Erro ao inicializar Supabase: ' + e.message, 'error');
-                useLocalStorage = true;
-                return false;
-            }
-        }
-
-        // === LOCALSTORAGE FALLBACK ===
         function getDB() {
             const data = localStorage.getItem(DB_KEY);
-            return data ? JSON.parse(data) : { alunos: [], turmas: [], cefr: [], material: [], agenda: [], financeiro: { transacoes: [] } };
+            return data ? JSON.parse(data) : {
+                alunos: [], turmas: [], cefr: [], material: [], agenda: [],
+                financeiro: { transacoes: [] }
+            };
         }
-        function saveDB(db) {
-            localStorage.setItem(DB_KEY, JSON.stringify(db));
-            log('💾 Dados salvos no localStorage');
+        
+        function saveDB(data) {
+            localStorage.setItem(DB_KEY, JSON.stringify(data));
+            renderStudents(); // Atualiza a lista
+            // Notifica o index.html se estiver aberto em outra aba
+            if (typeof updateDashboard === 'function') updateDashboard();
         }
-
-        // === CARREGAR ALUNOS ===
-        async function loadStudents() {
-            if (useLocalStorage) {
-                log('📦 Carregando do localStorage');
-                const db = getDB();
-                students = db.alunos || [];
-                renderStudents();
-                showSyncStatus('Local', 'ok');
-                return;
-            }
-            try {
-                log('☁️ Buscando no Supabase...');
-                showSyncStatus('Carregando...', 'syncing');
-                const { data, error } = await supabase.from('caderno_alunos').select('*').order('created_at', { ascending: false });
-                if (error) throw error;
-                students = data || [];
-                log(`✅ ${students.length} alunos carregados`, 'success');
-                renderStudents();
-                showSyncStatus('Sincronizado', 'ok');
-            } catch (error) {
-                log('❌ Erro: ' + error.message, 'error');
-                showSyncStatus('Erro - usando local', 'error');
-                // Fallback automático
-                useLocalStorage = true;
-                const db = getDB();
-                students = db.alunos || [];
-                renderStudents();
-            }
+        
+        // === TEMA ===
+        const html = document.documentElement;
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.classList.add('dark');
         }
-
-        // === RENDER (mantém visual original) ===
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        });
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        
+        // === RENDERIZAÇÃO ===
         function renderStudents() {
+            const db = getDB();
             const list = document.getElementById('studentsList');
             const empty = document.getElementById('emptyState');
-            const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
-            const level = document.getElementById('levelFilter')?.value || '';
             
-            let filtered = students.filter(a => {
-                const matchSearch = a.nome?.toLowerCase().includes(search);
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const level = document.getElementById('levelFilter').value;
+            
+            let filtered = db.alunos.filter(a => {
+                const matchSearch = a.nome.toLowerCase().includes(search);
                 const matchLevel = level ? a.nivel === level : true;
                 return matchSearch && matchLevel;
             });
@@ -295,60 +227,84 @@
             empty.classList.add('hidden');
             empty.classList.remove('flex');
             
-            list.innerHTML = filtered.map(aluno => {
+            list.innerHTML = filtered.map((aluno, idx) => {
+                // Encontra o índice real no array original para edição
+                const realIndex = db.alunos.findIndex(a => a.nome === aluno.nome && a.nivel === aluno.nivel);
+                
                 let linksHtml = '';
                 if (aluno.links?.length) {
                     linksHtml = `<div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex flex-wrap gap-2">`;
                     aluno.links.forEach(link => {
                         const icon = link.tipo === 'video' ? 'youtube' : link.tipo === 'pdf' ? 'file-text' : 'link';
-                        const color = link.tipo === 'video' ? 'text-red-600 bg-red-50 dark:bg-red-900/30' : link.tipo === 'pdf' ? 'text-orange-600 bg-orange-50 dark:bg-orange-900/30' : 'text-blue-600 bg-blue-50 dark:bg-blue-900/30';
-                        linksHtml += `<a href="${link.url}" target="_blank" class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${color}">${link.label}</a>`;
+                        const color = link.tipo === 'video' ? 'text-red-600 bg-red-50 dark:bg-red-900/30 dark:text-red-400' 
+                                    : link.tipo === 'pdf' ? 'text-orange-600 bg-orange-50 dark:bg-orange-900/30 dark:text-orange-400'
+                                    : 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400';
+                        linksHtml += `
+                            <a href="${link.url}" target="_blank" class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${color} hover:opacity-80 transition">
+                                <i data-lucide="${icon}" class="w-3 h-3"></i> ${link.label}
+                            </a>`;
                     });
                     linksHtml += `</div>`;
                 }
+                
                 return `
                 <div class="glass-effect rounded-2xl p-5 shadow-lg card-hover relative group">
                     <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition flex gap-1">
-                        <button onclick="editStudent('${aluno.id}')" class="p-1.5 bg-gray-100 dark:bg-gray-700 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                        <button onclick="deleteStudent('${aluno.id}')" class="p-1.5 bg-gray-100 dark:bg-gray-700 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        <button onclick="editStudent(${realIndex})" class="p-1.5 bg-gray-100 dark:bg-gray-700 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 transition" title="Editar">
+                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="deleteStudent(${realIndex})" class="p-1.5 bg-gray-100 dark:bg-gray-700 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 transition" title="Excluir">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
                     </div>
+                    
                     <div class="flex items-center gap-4 mb-3">
-                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">${aluno.nome?.charAt(0).toUpperCase() || '?'}</div>
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg">
+                            ${aluno.nome.charAt(0).toUpperCase()}
+                        </div>
                         <div>
                             <h3 class="font-semibold text-gray-800 dark:text-white">${aluno.nome}</h3>
-                            <span class="text-xs px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">${aluno.nivel}</span>
+                            <span class="text-xs px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 font-medium">${aluno.nivel}</span>
                         </div>
                     </div>
-                    ${aluno.telefone ? `<p class="text-sm text-gray-500 dark:text-gray-400"><i data-lucide="phone" class="w-3 h-3 inline"></i> ${aluno.telefone}</p>` : ''}
+                    
+                    ${aluno.telefone ? `<p class="text-sm text-gray-500 dark:text-gray-400 mb-2"><i data-lucide="phone" class="w-3 h-3 inline mr-1"></i> ${aluno.telefone}</p>` : ''}
                     ${linksHtml}
                 </div>`;
             }).join('');
-            if (window.lucide) lucide.createIcons();
+            
+            lucide.createIcons();
         }
-
-        // === MODAL ===
-        function openModal(studentId = null) {
+        
+        // === MODAL & FORMULÁRIO ===
+        function openModal(id = null) {
             document.getElementById('studentModal').classList.add('open');
-            document.getElementById('modalTitle').textContent = studentId ? 'Editar Aluno' : 'Novo Aluno';
+            document.getElementById('modalTitle').textContent = id ? 'Editar Aluno' : 'Novo Aluno';
             document.getElementById('studentForm').reset();
-            document.getElementById('editId').value = '';
+            document.getElementById('editId').value = id ?? '';
             document.getElementById('linksContainer').innerHTML = '';
-            addLinkInput();
-            if (studentId) {
-                const aluno = students.find(s => s.id === studentId);
+            addLinkInput(); // Campo vazio inicial
+            
+            if (id !== null) {
+                const db = getDB();
+                const aluno = db.alunos[id];
                 if (aluno) {
-                    document.getElementById('nome').value = aluno.nome || '';
-                    document.getElementById('nivel').value = aluno.nivel || 'A1';
+                    document.getElementById('nome').value = aluno.nome;
+                    document.getElementById('nivel').value = aluno.nivel;
                     document.getElementById('telefone').value = aluno.telefone || '';
+                    document.getElementById('linksContainer').innerHTML = '';
                     if (aluno.links?.length) {
-                        document.getElementById('linksContainer').innerHTML = '';
                         aluno.links.forEach(l => addLinkInput(l.url, l.label, l.tipo));
                     }
                 }
             }
-            if (window.lucide) lucide.createIcons();
+            lucide.createIcons();
         }
-        function closeModal() { document.getElementById('studentModal').classList.remove('open'); }
+        
+        function closeModal() {
+            document.getElementById('studentModal').classList.remove('open');
+        }
+        
         function addLinkInput(url = '', label = '', tipo = 'link') {
             const div = document.createElement('div');
             div.className = 'flex gap-2 items-center';
@@ -360,144 +316,82 @@
                 </select>
                 <input type="text" placeholder="URL" class="link-url flex-1 px-3 py-1.5 rounded border bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-sm" value="${url}">
                 <input type="text" placeholder="Nome" class="link-label w-24 px-3 py-1.5 rounded border bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-sm" value="${label}">
-                <button type="button" onclick="this.parentElement.remove()" class="text-red-500 p-1 rounded"><i data-lucide="x" class="w-4 h-4"></i></button>`;
+                <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 rounded"><i data-lucide="x" class="w-4 h-4"></i></button>
+            `;
             document.getElementById('linksContainer').appendChild(div);
-            if (window.lucide) lucide.createIcons();
+            lucide.createIcons();
         }
+        
         function getLinksFromForm() {
             const links = [];
-            [...document.querySelectorAll('#linksContainer > div')].forEach(row => {
-                const url = row.querySelector('.link-url')?.value.trim();
-                if (url) links.push({ tipo: row.querySelector('.link-tipo')?.value, url, label: row.querySelector('.link-label')?.value.trim() || 'Acessar' });
-            });
+            const rows = document.getElementById('linksContainer').children;
+            for (let row of rows) {
+                const url = row.querySelector('.link-url').value.trim();
+                if (url) {
+                    links.push({
+                        tipo: row.querySelector('.link-tipo').value,
+                        url: url,
+                        label: row.querySelector('.link-label').value.trim() || 'Acessar'
+                    });
+                }
+            }
             return links;
         }
-
-        // === SALVAR (CRUD) ===
-        async function saveStudent(e) {
+        
+        // === SUBMIT DO FORMULÁRIO (com validação de duplicata) ===
+        document.getElementById('studentForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            log('📤 Tentando salvar...', 'info');
-            
+            const db = getDB();
             const id = document.getElementById('editId').value;
             const nome = document.getElementById('nome').value.trim();
-            const nivel = document.getElementById('nivel').value;
-            const telefone = document.getElementById('telefone').value.trim();
-            const links = getLinksFromForm();
-            const data = { nome, nivel, telefone, links };
-
-            // Validação duplicata
-            if (!id && students.some(a => a.nome?.toLowerCase() === nome.toLowerCase())) {
+            
+            // Validação: não permitir nomes duplicados (exceto ao editar o mesmo)
+            const exists = db.alunos.some((a, i) => a.nome.toLowerCase() === nome.toLowerCase() && i != id);
+            if (exists) {
                 alert('⚠️ Já existe um aluno com este nome!');
-                log('⚠️ Duplicata detectada', 'warn');
                 return;
             }
-
-            if (useLocalStorage) {
-                // SALVAR NO LOCALSTORAGE
-                log('💾 Salvando no localStorage...', 'info');
-                const db = getDB();
-                if (id) {
-                    const idx = db.alunos.findIndex(a => a.id === id);
-                    if (idx !== -1) db.alunos[idx] = { ...db.alunos[idx], ...data };
-                } else {
-                    data.id = Date.now().toString();
-                    db.alunos.push(data);
-                }
-                saveDB(db);
-                await loadStudents();
-                closeModal();
-                log('✅ Salvo com sucesso (local)', 'success');
-                alert('✅ Aluno salvo!');
-                return;
+            
+            const alunoData = {
+                nome: nome,
+                nivel: document.getElementById('nivel').value,
+                telefone: document.getElementById('telefone').value.trim(),
+                links: getLinksFromForm()
+            };
+            
+            if (id !== '') {
+                db.alunos[id] = { ...db.alunos[id], ...alunoData };
+            } else {
+                db.alunos.push(alunoData);
             }
-
-            // SALVAR NO SUPABASE
-            try {
-                showSyncStatus('Salvando...', 'syncing');
-                if (id) {
-                    log(`✏️ Atualizando aluno ${id}`);
-                    const { error } = await supabase.from('caderno_alunos').update(data).eq('id', id);
-                    if (error) throw error;
-                } else {
-                    log(`➕ Inserindo novo aluno`);
-                    const { error } = await supabase.from('caderno_alunos').insert([data]);
-                    if (error) throw error;
-                }
-                await loadStudents();
-                closeModal();
-                log('✅ Salvo no Supabase!', 'success');
-                alert('✅ Aluno sincronizado na nuvem!');
-            } catch (error) {
-                log('❌ Erro ao salvar: ' + error.message, 'error');
-                showSyncStatus('Erro', 'error');
-                alert('Erro: ' + error.message + '\n\nDica: Verifique se a tabela caderno_alunos existe no Supabase.');
-            }
-        }
-
-        async function editStudent(id) { openModal(id); }
-        async function deleteStudent(id) {
-            if (!confirm('Excluir este aluno?')) return;
-            if (useLocalStorage) {
-                const db = getDB();
-                db.alunos = db.alunos.filter(a => a.id !== id);
-                saveDB(db);
-                await loadStudents();
-                return;
-            }
-            try {
-                showSyncStatus('Excluindo...', 'syncing');
-                const { error } = await supabase.from('caderno_alunos').delete().eq('id', id);
-                if (error) throw error;
-                await loadStudents();
-            } catch (e) { log('Erro ao excluir: ' + e.message, 'error'); alert(e.message); }
-        }
-
-        async function syncData() {
-            const icon = document.getElementById('syncIcon');
-            icon.classList.add('animate-spin');
-            await loadStudents();
-            setTimeout(() => icon.classList.remove('animate-spin'), 500);
-        }
-
-        // === REALTIME ===
-        function setupRealtime() {
-            if (useLocalStorage || !supabase) return;
-            supabase.channel('caderno_alunos_rt')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'caderno_alunos' }, () => {
-                    log('🔄 Mudança detectada - recarregando', 'info');
-                    loadStudents();
-                })
-                .subscribe(status => log(`📡 Realtime: ${status}`, 'info'));
-        }
-
-        // === TEMA & INIT ===
-        const html = document.documentElement;
-        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) html.classList.add('dark');
-        document.getElementById('themeToggle')?.addEventListener('click', () => {
-            html.classList.toggle('dark');
-            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+            
+            saveDB(db);
+            closeModal();
         });
-        document.getElementById('current-year').textContent = new Date().getFullYear();
-        document.getElementById('searchInput')?.addEventListener('input', renderStudents);
-        document.getElementById('levelFilter')?.addEventListener('change', renderStudents);
+        
+        // === AÇÕES ===
+        function editStudent(index) { openModal(index); }
+        
+        function deleteStudent(index) {
+            if (!confirm('Tem certeza que deseja excluir este aluno?')) return;
+            const db = getDB();
+            db.alunos.splice(index, 1);
+            saveDB(db);
+        }
+        
+        // === FILTERS ===
+        document.getElementById('searchInput').addEventListener('input', renderStudents);
+        document.getElementById('levelFilter').addEventListener('change', renderStudents);
+        
+        // === CLOSE MODAL ON ESC / CLICK OUTSIDE ===
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-        document.getElementById('studentModal')?.addEventListener('click', e => { if (e.target.id === 'studentModal') closeModal(); });
-        document.getElementById('studentForm')?.addEventListener('submit', saveStudent);
-
+        document.getElementById('studentModal').addEventListener('click', e => { if (e.target.id === 'studentModal') closeModal(); });
+        
+        // === INIT ===
         document.addEventListener('DOMContentLoaded', () => {
-            log('🚀 Iniciando...', 'info');
-            initSupabase();
-            loadStudents();
-            setupRealtime();
-            if (window.lucide) lucide.createIcons();
-            log(`📊 Modo: ${useLocalStorage ? '🗄️ LocalStorage' : '☁️ Supabase'}`, 'success');
+            renderStudents();
+            lucide.createIcons();
         });
-
-        // Expor globalmente
-        window.supabaseClient = supabase;
-        window.syncData = syncData;
-        window.loadStudents = loadStudents;
-        window.log = log;
     </script>
 </body>
 </html>
