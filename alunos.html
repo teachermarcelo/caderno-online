@@ -1,209 +1,241 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alunos - Caderno Online</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238b5cf6'><path d='M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25'/></svg>">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                    colors: {
+                        primary: '#8b5cf6',
+                        secondary: '#ec4899',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
+                    },
+                    animation: { 'float': 'float 3s ease-in-out infinite' },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
                 }
             }
         }
     </script>
+    
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .tab-btn.active { background: white; color: #1f2937; font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-        .card { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; }
-        .student-card { transition: all 0.2s; }
-        .student-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-2px); }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 50; align-items: center; justify-content: center; padding: 20px; }
-        .modal.active { display: flex; }
-        .modal-content { background: white; border-radius: 16px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; }
-        .sync-indicator { position: fixed; top: 70px; right: 20px; background: white; padding: 8px 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 12px; display: flex; align-items: center; gap: 6px; z-index: 100; }
-        .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; }
-        .sync-dot.syncing { background: #f59e0b; animation: pulse 1s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .dark body { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+        .glass-effect { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .dark .glass-effect { background: rgba(15, 23, 42, 0.95); }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .floating-btn { position: fixed; bottom: 30px; right: 30px; z-index: 1000; transition: all 0.3s ease; animation: float 3s ease-in-out infinite; }
+        .floating-btn:hover { transform: scale(1.1) translateY(-5px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4); }
+        .modal { opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+        .modal.open { opacity: 1; pointer-events: auto; }
+        .gradient-text { background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .sync-badge { position: fixed; top: 80px; right: 20px; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 500; display: flex; align-items: center; gap: 6px; z-index: 999; }
+        .sync-badge.ok { background: rgba(16, 185, 129, 0.9); color: white; }
+        .sync-badge.syncing { background: rgba(245, 158, 11, 0.9); color: white; }
+        .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+        .sync-dot.pulse { animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(2px); }
+        .loading-overlay.active { display: flex; }
     </style>
 </head>
-<body class="min-h-screen">
+<body class="text-gray-800 dark:text-gray-200 transition-colors duration-300">
 
-    <!-- HEADER -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div class="max-w-6xl mx-auto px-4">
-            <div class="flex items-center justify-between h-14">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                        <i data-lucide="book-open" class="w-4 h-4 text-white"></i>
-                    </div>
-                    <span class="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
-                        Caderno Online
-                    </span>
+    <!-- Sync Badge -->
+    <div id="syncBadge" class="sync-badge ok">
+        <div class="sync-dot" id="syncDot"></div>
+        <span id="syncText">Sincronizado</span>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="glass-effect rounded-2xl p-6 flex items-center gap-3 shadow-2xl">
+            <div class="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+            <span class="text-sm font-medium">Sincronizando...</span>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="glass-effect sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-3">
+                    <a href="index.html" class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg hover:opacity-90 transition">
+                        <i data-lucide="arrow-left" class="w-6 h-6 text-white"></i>
+                    </a>
+                    <h1 class="text-2xl font-bold gradient-text">Gestão de Alunos</h1>
                 </div>
-                <button onclick="syncData()" class="p-2 rounded-lg hover:bg-gray-100 transition">
-                    <i data-lucide="refresh-cw" class="w-4 h-4 text-gray-400" id="sync-icon"></i>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="syncData()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition" title="Sincronizar">
+                        <i data-lucide="refresh-cw" class="w-5 h-5" id="syncIcon"></i>
+                    </button>
+                    <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 shadow-md">
+                        <i data-lucide="sun" class="w-5 h-5 hidden dark:block text-yellow-400"></i>
+                        <i data-lucide="moon" class="w-5 h-5 block dark:hidden text-gray-600"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- Sync Indicator -->
-    <div class="sync-indicator">
-        <div class="sync-dot" id="sync-dot"></div>
-        <span id="sync-text">Sincronizado</span>
-    </div>
-
-    <main class="max-w-6xl mx-auto px-4 py-4">
-
-        <!-- TABS -->
-        <div class="bg-gray-100 rounded-xl p-1 flex gap-0.5 mb-6 overflow-x-auto">
-            <a href="index.html" class="tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-gray-500 whitespace-nowrap">
-                <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> Home
-            </a>
-            <a href="alunos.html" class="tab-btn active flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-gray-500 whitespace-nowrap">
-                <i data-lucide="users" class="w-3.5 h-3.5"></i> Alunos
-            </a>
-            <a href="turmas.html" class="tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-gray-500 whitespace-nowrap">
-                <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i> Turmas
-            </a>
-            <a href="cefr.html" class="tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-gray-500 whitespace-nowrap">
-                <i data-lucide="book-marked" class="w-3.5 h-3.5"></i> CEFR
-            </a>
-            <a href="material.html" class="tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-gray-500 whitespace-nowrap">
-                <i data-lucide="link-2" class="w-3.5 h-3.5"></i> Material
-            </a>
-            <a href="agenda.html" class="tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-gray-500 whitespace-nowrap">
-                <i data-lucide="calendar" class="w-3.5 h-3.5"></i> Agenda
-            </a>
-            <a href="financeiro.html" class="tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-gray-500 whitespace-nowrap">
-                <i data-lucide="wallet" class="w-3.5 h-3.5"></i> Financeiro
-            </a>
-        </div>
-
-        <!-- CONTENT -->
-        <div class="mb-4">
-            <h1 class="text-xl font-bold text-gray-900 mb-1">Gestão de Alunos</h1>
-            <p class="text-sm text-gray-600">Cadastre e gerencie seus alunos com links e recursos</p>
-        </div>
-
-        <!-- FILTERS -->
-        <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
-            <button onclick="filterByLevel('all')" class="filter-btn active px-3 py-1.5 rounded-lg bg-purple-600 text-white text-sm font-medium whitespace-nowrap" data-level="all">
-                Todos os Níveis
-            </button>
-            <button onclick="filterByLevel('A1')" class="filter-btn px-3 py-1.5 rounded-lg bg-white text-gray-600 text-sm font-medium hover:bg-gray-50 whitespace-nowrap" data-level="A1">A1</button>
-            <button onclick="filterByLevel('A2')" class="filter-btn px-3 py-1.5 rounded-lg bg-white text-gray-600 text-sm font-medium hover:bg-gray-50 whitespace-nowrap" data-level="A2">A2</button>
-            <button onclick="filterByLevel('B1')" class="filter-btn px-3 py-1.5 rounded-lg bg-white text-gray-600 text-sm font-medium hover:bg-gray-50 whitespace-nowrap" data-level="B1">B1</button>
-            <button onclick="filterByLevel('B2')" class="filter-btn px-3 py-1.5 rounded-lg bg-white text-gray-600 text-sm font-medium hover:bg-gray-50 whitespace-nowrap" data-level="B2">B2</button>
-            <button onclick="filterByLevel('C1')" class="filter-btn px-3 py-1.5 rounded-lg bg-white text-gray-600 text-sm font-medium hover:bg-gray-50 whitespace-nowrap" data-level="C1">C1</button>
-            <button onclick="filterByLevel('C2')" class="filter-btn px-3 py-1.5 rounded-lg bg-white text-gray-600 text-sm font-medium hover:bg-gray-50 whitespace-nowrap" data-level="C2">C2</button>
-        </div>
-
-        <!-- STUDENTS LIST -->
-        <div id="students-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            <div class="col-span-full text-center py-12 text-gray-400">
-                <i data-lucide="loader" class="w-8 h-8 mx-auto mb-2 animate-spin"></i>
-                <p class="text-sm">Carregando alunos...</p>
+    <!-- Main -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Header Section -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div>
+                <h2 class="text-2xl font-bold text-white">Lista de Alunos</h2>
+                <p class="text-white/80 text-sm mt-1">Cadastre e gerencie seus alunos com links e recursos</p>
             </div>
-        </div>
-
-        <!-- EMPTY STATE -->
-        <div id="empty-state" class="hidden text-center py-12">
-            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                <i data-lucide="users" class="w-8 h-8 text-gray-400"></i>
-            </div>
-            <h3 class="text-sm font-medium text-gray-900 mb-1">Nenhum aluno encontrado</h3>
-            <p class="text-xs text-gray-500 mb-4">Comece cadastrando seu primeiro aluno clicando no botão acima.</p>
-            <button onclick="openModal()" class="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition">
-                Novo Aluno
+            <button onclick="openModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-white text-purple-600 rounded-lg font-medium hover:bg-gray-50 transition shadow-md">
+                <i data-lucide="plus" class="w-4 h-4"></i> Novo Aluno
             </button>
         </div>
 
+        <!-- Search & Filter -->
+        <div class="glass-effect rounded-2xl p-4 mb-6 shadow-lg">
+            <div class="flex flex-col sm:flex-row gap-3">
+                <div class="relative flex-1">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar por nome..." class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <select id="levelFilter" class="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <option value="">Todos os Níveis</option>
+                    <option value="A1">A1</option><option value="A2">A2</option><option value="B1">B1</option>
+                    <option value="B2">B2</option><option value="C1">C1</option><option value="C2">C2</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Students Grid -->
+        <div id="studentsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Cards injected via JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-center">
+            <div class="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center mb-4">
+                <i data-lucide="users" class="w-8 h-8 text-white/60"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-white mb-2">Nenhum aluno encontrado</h3>
+            <p class="text-white/70 max-w-sm">Comece cadastrando seu primeiro aluno clicando no botão acima.</p>
+        </div>
     </main>
 
-    <!-- FLOATING BUTTON -->
-    <button onclick="openModal()" class="fixed bottom-6 right-6 w-14 h-14 bg-purple-600 text-white rounded-full shadow-lg hover:bg-purple-700 transition flex items-center justify-center z-30">
-        <i data-lucide="plus" class="w-6 h-6"></i>
-    </button>
-
-    <!-- MODAL -->
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <div class="p-4 border-b border-gray-200 flex items-center justify-between">
-                <h3 class="text-base font-semibold text-gray-900" id="modal-title">Novo Aluno</h3>
-                <button onclick="closeModal()" class="p-1 rounded-lg hover:bg-gray-100">
-                    <i data-lucide="x" class="w-5 h-5 text-gray-400"></i>
-                </button>
+    <!-- Modal -->
+    <div id="studentModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="glass-effect rounded-2xl w-full max-w-lg p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalTitle" class="text-lg font-semibold text-gray-800 dark:text-white">Novo Aluno</h3>
+                <button onclick="closeModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
-            <form id="student-form" onsubmit="saveStudent(event)" class="p-4 space-y-4">
-                <input type="hidden" id="student-id">
+            
+            <form id="studentForm" class="space-y-4">
+                <input type="hidden" id="editId">
                 
                 <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Nome Completo *</label>
-                    <input type="text" id="student-nome" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Digite o nome completo">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nome Completo *</label>
+                    <input type="text" id="nome" required class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Nível CEFR *</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <label class="cursor-pointer"><input type="radio" name="nivel" value="A1" class="peer sr-only" required><div class="text-center py-2 rounded-lg border border-gray-300 text-xs font-medium text-gray-600 peer-checked:bg-purple-600 peer-checked:text-white peer-checked:border-purple-600 transition">A1</div></label>
-                        <label class="cursor-pointer"><input type="radio" name="nivel" value="A2" class="peer sr-only"><div class="text-center py-2 rounded-lg border border-gray-300 text-xs font-medium text-gray-600 peer-checked:bg-purple-600 peer-checked:text-white peer-checked:border-purple-600 transition">A2</div></label>
-                        <label class="cursor-pointer"><input type="radio" name="nivel" value="B1" class="peer sr-only"><div class="text-center py-2 rounded-lg border border-gray-300 text-xs font-medium text-gray-600 peer-checked:bg-purple-600 peer-checked:text-white peer-checked:border-purple-600 transition">B1</div></label>
-                        <label class="cursor-pointer"><input type="radio" name="nivel" value="B2" class="peer sr-only"><div class="text-center py-2 rounded-lg border border-gray-300 text-xs font-medium text-gray-600 peer-checked:bg-purple-600 peer-checked:text-white peer-checked:border-purple-600 transition">B2</div></label>
-                        <label class="cursor-pointer"><input type="radio" name="nivel" value="C1" class="peer sr-only"><div class="text-center py-2 rounded-lg border border-gray-300 text-xs font-medium text-gray-600 peer-checked:bg-purple-600 peer-checked:text-white peer-checked:border-purple-600 transition">C1</div></label>
-                        <label class="cursor-pointer"><input type="radio" name="nivel" value="C2" class="peer sr-only"><div class="text-center py-2 rounded-lg border border-gray-300 text-xs font-medium text-gray-600 peer-checked:bg-purple-600 peer-checked:text-white peer-checked:border-purple-600 transition">C2</div></label>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nível CEFR</label>
+                        <select id="nivel" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                            <option value="A1">A1</option><option value="A2">A2</option><option value="B1">B1</option>
+                            <option value="B2">B2</option><option value="C1">C1</option><option value="C2">C2</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Telefone</label>
+                        <input type="tel" id="telefone" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                     </div>
                 </div>
-
+                
                 <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Telefone</label>
-                    <input type="tel" id="student-telefone" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="(00) 00000-0000">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Links & Recursos</label>
-                    <div id="links-container" class="space-y-2"></div>
-                    <button type="button" onclick="addLinkField()" class="mt-2 text-xs text-purple-600 font-medium hover:text-purple-700 flex items-center gap-1">
-                        <i data-lucide="plus" class="w-3 h-3"></i> Adicionar Link/Recurso
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Links & Recursos</label>
+                    <div id="linksContainer" class="space-y-2 mb-2"></div>
+                    <button type="button" onclick="addLinkInput()" class="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Adicionar Link/Recurso
                     </button>
                 </div>
-
-                <div class="flex gap-2 pt-2">
-                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition">Cancelar</button>
-                    <button type="submit" class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition">Salvar</button>
+                
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">Cancelar</button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition">Salvar</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- Floating Button -->
+    <div class="floating-btn">
+        <button onclick="openModal()" class="w-14 h-14 rounded-full bg-purple-600 hover:bg-purple-700 text-white shadow-lg flex items-center justify-center transition-all" title="Novo Aluno">
+            <i data-lucide="user-plus" class="w-6 h-6"></i>
+        </button>
+    </div>
+
+    <!-- Footer -->
+    <footer class="glass-effect border-t border-gray-200 dark:border-gray-700 mt-12 py-4">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-gray-600 dark:text-gray-400">
+            © <span id="current-year"></span> Caderno Online
+        </div>
+    </footer>
+
+    <!-- JavaScript com Supabase -->
     <script>
-        // Configuração do Supabase
+        // === CONFIGURAÇÃO DO SUPABASE ===
         const SUPABASE_URL = 'https://rvgcniaowzmsudzliozf.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_N_xCS0lbbTvG7qWTpAw0ag_vlg1lbHb';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+        
         let students = [];
-        let currentFilter = 'all';
 
-        // Funções de utilidade
+        // === UTILITÁRIOS ===
         function showSyncStatus(message, syncing = false) {
-            const dot = document.getElementById('sync-dot');
-            const text = document.getElementById('sync-text');
+            const badge = document.getElementById('syncBadge');
+            const dot = document.getElementById('syncDot');
+            const text = document.getElementById('syncText');
+            const overlay = document.getElementById('loadingOverlay');
+            
             text.textContent = message;
             if (syncing) {
-                dot.classList.add('syncing');
+                badge.className = 'sync-badge syncing';
+                dot.classList.add('pulse');
+                overlay.classList.add('active');
             } else {
-                dot.classList.remove('syncing');
+                badge.className = 'sync-badge ok';
+                dot.classList.remove('pulse');
+                setTimeout(() => overlay.classList.remove('active'), 300);
             }
         }
 
+        function formatPhone(value) {
+            return value.replace(/\D/g, '')
+                .replace(/(\d{2})(\d)/, '($1) $2')
+                .replace(/(\d{5})(\d)/, '$1-$2')
+                .replace(/(-\d{4})\d+?$/, '$1');
+        }
+
+        // === CARREGAR DADOS DO SUPABASE ===
         async function loadStudents() {
             try {
                 showSyncStatus('Carregando...', true);
@@ -218,144 +250,159 @@
                 showSyncStatus('Sincronizado', false);
             } catch (error) {
                 console.error('Erro ao carregar alunos:', error);
-                showSyncStatus('Erro na sincronização', false);
+                showSyncStatus('Erro na conexão', false);
                 alert('Erro ao carregar dados: ' + error.message);
             }
         }
 
+        // === RENDERIZAÇÃO (mantém o visual original) ===
         function renderStudents() {
-            const listEl = document.getElementById('students-list');
-            const emptyEl = document.getElementById('empty-state');
-
-            const filtered = currentFilter === 'all' 
-                ? students 
-                : students.filter(s => s.nivel === currentFilter);
-
+            const list = document.getElementById('studentsList');
+            const empty = document.getElementById('emptyState');
+            
+            const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
+            const level = document.getElementById('levelFilter')?.value || '';
+            
+            let filtered = students.filter(a => {
+                const matchSearch = a.nome.toLowerCase().includes(search);
+                const matchLevel = level ? a.nivel === level : true;
+                return matchSearch && matchLevel;
+            });
+            
             if (filtered.length === 0) {
-                listEl.classList.add('hidden');
-                emptyEl.classList.remove('hidden');
+                list.innerHTML = '';
+                empty.classList.remove('hidden');
+                empty.classList.add('flex');
                 return;
             }
-
-            listEl.classList.remove('hidden');
-            emptyEl.classList.add('hidden');
-
-            listEl.innerHTML = filtered.map(student => `
-                <div class="card student-card">
-                    <div class="flex items-start gap-3">
-                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                            ${student.nome.charAt(0).toUpperCase()}
+            empty.classList.add('hidden');
+            empty.classList.remove('flex');
+            
+            list.innerHTML = filtered.map(aluno => {
+                let linksHtml = '';
+                if (aluno.links?.length) {
+                    linksHtml = `<div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex flex-wrap gap-2">`;
+                    aluno.links.forEach(link => {
+                        const icon = link.tipo === 'video' ? 'youtube' : link.tipo === 'pdf' ? 'file-text' : 'link';
+                        const color = link.tipo === 'video' ? 'text-red-600 bg-red-50 dark:bg-red-900/30 dark:text-red-400' 
+                                    : link.tipo === 'pdf' ? 'text-orange-600 bg-orange-50 dark:bg-orange-900/30 dark:text-orange-400'
+                                    : 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400';
+                        linksHtml += `
+                            <a href="${link.url}" target="_blank" class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${color} hover:opacity-80 transition">
+                                <i data-lucide="${icon}" class="w-3 h-3"></i> ${link.label}
+                            </a>`;
+                    });
+                    linksHtml += `</div>`;
+                }
+                
+                return `
+                <div class="glass-effect rounded-2xl p-5 shadow-lg card-hover relative group">
+                    <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition flex gap-1">
+                        <button onclick="editStudent('${aluno.id}')" class="p-1.5 bg-gray-100 dark:bg-gray-700 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 transition" title="Editar">
+                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="deleteStudent('${aluno.id}')" class="p-1.5 bg-gray-100 dark:bg-gray-700 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 transition" title="Excluir">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center gap-4 mb-3">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg">
+                            ${aluno.nome.charAt(0).toUpperCase()}
                         </div>
-                        <div class="flex-1 min-w-0">
-                            <h3 class="font-semibold text-gray-900 truncate">${student.nome}</h3>
-                            <div class="flex items-center gap-2 mt-1">
-                                <span class="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-xs font-medium">${student.nivel || 'N/A'}</span>
-                                ${student.telefone ? `<span class="text-xs text-gray-500">${student.telefone}</span>` : ''}
-                            </div>
-                            ${student.links && student.links.length > 0 ? `
-                                <div class="mt-2 space-y-1">
-                                    ${student.links.map((link, idx) => `
-                                        <a href="${link.url}" target="_blank" class="flex items-center gap-1 text-xs text-purple-600 hover:text-purple-700">
-                                            <i data-lucide="link" class="w-3 h-3"></i> ${link.descricao || 'Link ' + (idx + 1)}
-                                        </a>
-                                    `).join('')}
-                                </div>
-                            ` : ''}
-                        </div>
-                        <div class="flex gap-1">
-                            <button onclick="editStudent('${student.id}')" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600">
-                                <i data-lucide="pencil" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="deleteStudent('${student.id}')" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
+                        <div>
+                            <h3 class="font-semibold text-gray-800 dark:text-white">${aluno.nome}</h3>
+                            <span class="text-xs px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 font-medium">${aluno.nivel}</span>
                         </div>
                     </div>
-                </div>
-            `).join('');
-
-            lucide.createIcons();
-        }
-
-        function filterByLevel(level) {
-            currentFilter = level;
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                if (btn.dataset.level === level) {
-                    btn.classList.remove('bg-white', 'text-gray-600');
-                    btn.classList.add('bg-purple-600', 'text-white');
-                } else {
-                    btn.classList.add('bg-white', 'text-gray-600');
-                    btn.classList.remove('bg-purple-600', 'text-white');
-                }
-            });
-            renderStudents();
-        }
-
-        function openModal(studentId = null) {
-            const modal = document.getElementById('modal');
-            const form = document.getElementById('student-form');
-            const title = document.getElementById('modal-title');
-            const linksContainer = document.getElementById('links-container');
-
-            form.reset();
-            linksContainer.innerHTML = '';
-            document.getElementById('student-id').value = '';
-
-            if (studentId) {
-                const student = students.find(s => s.id === studentId);
-                if (student) {
-                    title.textContent = 'Editar Aluno';
-                    document.getElementById('student-id').value = student.id;
-                    document.getElementById('student-nome').value = student.nome;
-                    document.getElementById('student-telefone').value = student.telefone || '';
                     
-                    const radio = document.querySelector(`input[name="nivel"][value="${student.nivel}"]`);
-                    if (radio) radio.checked = true;
+                    ${aluno.telefone ? `<p class="text-sm text-gray-500 dark:text-gray-400 mb-2"><i data-lucide="phone" class="w-3 h-3 inline mr-1"></i> ${aluno.telefone}</p>` : ''}
+                    ${linksHtml}
+                </div>`;
+            }).join('');
+            
+            if (window.lucide) lucide.createIcons();
+        }
 
-                    if (student.links && student.links.length > 0) {
-                        student.links.forEach(link => addLinkField(link.descricao, link.url));
+        // === MODAL & FORMULÁRIO ===
+        function openModal(studentId = null) {
+            document.getElementById('studentModal').classList.add('open');
+            document.getElementById('modalTitle').textContent = studentId ? 'Editar Aluno' : 'Novo Aluno';
+            document.getElementById('studentForm').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('linksContainer').innerHTML = '';
+            addLinkInput(); // Campo vazio inicial
+            
+            if (studentId) {
+                const aluno = students.find(s => s.id === studentId);
+                if (aluno) {
+                    document.getElementById('nome').value = aluno.nome;
+                    document.getElementById('nivel').value = aluno.nivel;
+                    document.getElementById('telefone').value = aluno.telefone || '';
+                    document.getElementById('linksContainer').innerHTML = '';
+                    if (aluno.links?.length) {
+                        aluno.links.forEach(l => addLinkInput(l.url, l.label, l.tipo));
                     }
                 }
-            } else {
-                title.textContent = 'Novo Aluno';
             }
-
-            modal.classList.add('active');
+            if (window.lucide) lucide.createIcons();
         }
 
         function closeModal() {
-            document.getElementById('modal').classList.remove('active');
+            document.getElementById('studentModal').classList.remove('open');
         }
 
-        function addLinkField(descricao = '', url = '') {
-            const container = document.getElementById('links-container');
+        function addLinkInput(url = '', label = '', tipo = 'link') {
             const div = document.createElement('div');
-            div.className = 'flex gap-2';
+            div.className = 'flex gap-2 items-center';
             div.innerHTML = `
-                <input type="text" placeholder="Descrição" value="${descricao}" class="link-desc flex-1 px-2 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-purple-500">
-                <input type="url" placeholder="URL" value="${url}" class="link-url flex-1 px-2 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-purple-500">
-                <button type="button" onclick="this.parentElement.remove()" class="p-1.5 text-red-600 hover:bg-red-50 rounded">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                </button>
+                <select class="link-tipo border rounded p-1.5 text-sm w-24 bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                    <option value="link" ${tipo==='link'?'selected':''}>Link</option>
+                    <option value="video" ${tipo==='video'?'selected':''}>Vídeo</option>
+                    <option value="pdf" ${tipo==='pdf'?'selected':''}>PDF</option>
+                </select>
+                <input type="text" placeholder="URL" class="link-url flex-1 px-3 py-1.5 rounded border bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-sm" value="${url}">
+                <input type="text" placeholder="Nome" class="link-label w-24 px-3 py-1.5 rounded border bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-sm" value="${label}">
+                <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 rounded"><i data-lucide="x" class="w-4 h-4"></i></button>
             `;
-            container.appendChild(div);
-            lucide.createIcons();
+            document.getElementById('linksContainer').appendChild(div);
+            if (window.lucide) lucide.createIcons();
         }
 
+        function getLinksFromForm() {
+            const links = [];
+            const rows = document.getElementById('linksContainer').children;
+            for (let row of rows) {
+                const url = row.querySelector('.link-url')?.value.trim();
+                if (url) {
+                    links.push({
+                        tipo: row.querySelector('.link-tipo')?.value,
+                        url: url,
+                        label: row.querySelector('.link-label')?.value.trim() || 'Acessar'
+                    });
+                }
+            }
+            return links;
+        }
+
+        // === CRUD COM SUPABASE ===
         async function saveStudent(event) {
             event.preventDefault();
             
-            const id = document.getElementById('student-id').value;
-            const nome = document.getElementById('student-nome').value.trim();
-            const nivel = document.querySelector('input[name="nivel"]:checked')?.value;
-            const telefone = document.getElementById('student-telefone').value.trim();
+            const id = document.getElementById('editId').value;
+            const nome = document.getElementById('nome').value.trim();
+            const nivel = document.getElementById('nivel').value;
+            const telefone = document.getElementById('telefone').value.trim();
+            const links = getLinksFromForm();
 
-            const links = [];
-            document.querySelectorAll('#links-container > div').forEach(div => {
-                const desc = div.querySelector('.link-desc').value.trim();
-                const url = div.querySelector('.link-url').value.trim();
-                if (url) links.push({ descricao: desc || 'Link', url });
-            });
+            // Validação de duplicata (apenas para novos registros)
+            if (!id) {
+                const exists = students.some(a => a.nome.toLowerCase() === nome.toLowerCase());
+                if (exists) {
+                    alert('⚠️ Já existe um aluno com este nome!');
+                    return;
+                }
+            }
 
             const data = { nome, nivel, telefone, links };
 
@@ -363,21 +410,21 @@
                 showSyncStatus('Salvando...', true);
                 
                 if (id) {
-                    // Update
+                    // UPDATE
                     const { error } = await supabase
                         .from('caderno_alunos')
                         .update(data)
                         .eq('id', id);
                     if (error) throw error;
                 } else {
-                    // Insert
+                    // INSERT
                     const { error } = await supabase
                         .from('caderno_alunos')
                         .insert([data]);
                     if (error) throw error;
                 }
 
-                await loadStudents();
+                await loadStudents(); // Recarrega da nuvem
                 closeModal();
                 showSyncStatus('Sincronizado', false);
             } catch (error) {
@@ -411,30 +458,62 @@
             }
         }
 
+        // === SYNC MANUAL ===
         async function syncData() {
-            const icon = document.getElementById('sync-icon');
+            const icon = document.getElementById('syncIcon');
             icon.classList.add('animate-spin');
             await loadStudents();
             setTimeout(() => icon.classList.remove('animate-spin'), 500);
         }
 
-        // Setup Realtime
-        supabase.channel('caderno_alunos')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'caderno_alunos' }, () => {
-                loadStudents();
-            })
-            .subscribe();
+        // === REALTIME SUBSCRIPTION ===
+        function setupRealtime() {
+            supabase.channel('caderno_alunos_realtime')
+                .on('postgres_changes', { 
+                    event: '*', 
+                    schema: 'public', 
+                    table: 'caderno_alunos' 
+                }, () => {
+                    console.log('🔄 Mudança detectada - recarregando...');
+                    loadStudents();
+                })
+                .subscribe();
+            console.log('✅ Realtime ativo para caderno_alunos');
+        }
 
-        // Inicialização
+        // === TEMA ===
+        const html = document.documentElement;
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.classList.add('dark');
+        }
+        document.getElementById('themeToggle')?.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        });
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // === FILTERS ===
+        document.getElementById('searchInput')?.addEventListener('input', renderStudents);
+        document.getElementById('levelFilter')?.addEventListener('change', renderStudents);
+
+        // === CLOSE MODAL ===
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+        document.getElementById('studentModal')?.addEventListener('click', e => { if (e.target.id === 'studentModal') closeModal(); });
+
+        // === FORM SUBMIT ===
+        document.getElementById('studentForm')?.addEventListener('submit', saveStudent);
+
+        // === INIT ===
         document.addEventListener('DOMContentLoaded', () => {
             loadStudents();
-            lucide.createIcons();
+            setupRealtime();
+            if (window.lucide) lucide.createIcons();
         });
 
-        // Fechar modal ao clicar fora
-        document.getElementById('modal').addEventListener('click', (e) => {
-            if (e.target.id === 'modal') closeModal();
-        });
+        // Expor funções globalmente para outras páginas
+        window.supabaseClient = supabase;
+        window.syncData = syncData;
+        window.loadStudents = loadStudents;
     </script>
 </body>
 </html>
