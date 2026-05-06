@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="light">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,151 +8,210 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    colors: {
-                        primary: '#8b5cf6',
-                        secondary: '#ec4899',
-                        success: '#10b981',
-                        warning: '#f59e0b',
-                        danger: '#ef4444',
-                    },
-                    animation: { 'float': 'float 3s ease-in-out infinite' },
-                    keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' },
-                        }
-                    }
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
                 }
             }
         }
     </script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
-        .dark body { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
-        .glass-effect { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        .dark .glass-effect { background: rgba(15, 23, 42, 0.95); }
-        .card-hover { transition: all 0.3s ease; }
-        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
-        .floating-btn { position: fixed; bottom: 30px; right: 30px; z-index: 1000; transition: all 0.3s ease; animation: float 3s ease-in-out infinite; }
-        .floating-btn:hover { transform: scale(1.1) translateY(-5px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4); }
-        .modal { opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-        .modal.open { opacity: 1; pointer-events: auto; }
-        .gradient-text { background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .tab-btn { transition: all 0.2s ease; }
+        .tab-btn.active { background-color: white; color: #111827; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .tab-btn:not(.active) { color: #6b7280; }
+        .tab-btn:not(.active):hover { background-color: rgba(0,0,0,0.05); color: #374151; }
+        
+        .material-card {
+            background: white;
+            border: 1px solid #f3f4f6;
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .material-card:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+        
+        .type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .type-link { background: #dbeafe; color: #1e40af; }
+        .type-video { background: #fee2e2; color: #991b1b; }
+        .type-pdf { background: #ffedd5; color: #9a3412; }
+        .type-audio { background: #f3e8ff; color: #6b21a8; }
+        
+        .modal { 
+            display: none; 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0,0,0,0.5); 
+            z-index: 100; 
+            align-items: center; 
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal.active { display: flex; }
     </style>
 </head>
-<body class="text-gray-800 dark:text-gray-200 transition-colors duration-300">
+<body class="bg-gray-50 text-gray-800 antialiased">
 
-    <!-- Header -->
-    <header class="glass-effect sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+    <!-- HEADER -->
+    <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
+            <div class="flex items-center justify-between h-16">
                 <div class="flex items-center gap-3">
-                    <a href="index.html" class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg hover:opacity-90 transition">
-                        <i data-lucide="arrow-left" class="w-6 h-6 text-white"></i>
+                    <a href="index.html" class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center shadow-sm hover:opacity-90 transition">
+                        <i data-lucide="arrow-left" class="w-5 h-5 text-white"></i>
                     </a>
-                    <h1 class="text-2xl font-bold gradient-text">Biblioteca de Material</h1>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
+                        Biblioteca de Material
+                    </h1>
                 </div>
-                <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 shadow-md">
-                    <i data-lucide="sun" class="w-5 h-5 hidden dark:block text-yellow-400"></i>
-                    <i data-lucide="moon" class="w-5 h-5 block dark:hidden text-gray-600"></i>
+                <button id="themeToggle" class="p-2 rounded-lg hover:bg-gray-100 transition">
+                    <i data-lucide="moon" class="w-5 h-5 text-gray-600 hidden dark:block"></i>
+                    <i data-lucide="sun" class="w-5 h-5 text-gray-600 block dark:hidden"></i>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Main -->
+    <!-- NAVEGAÇÃO -->
+    <div class="bg-gray-50 py-4 sticky top-16 z-40 border-b border-gray-200/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-white rounded-xl p-1.5 inline-flex gap-1 shadow-sm border border-gray-100 w-full md:w-auto">
+                <a href="index.html" class="tab-btn flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm">
+                    <i data-lucide="layout-grid" class="w-4 h-4"></i> Home
+                </a>
+                <a href="alunos.html" class="tab-btn flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm">
+                    <i data-lucide="users" class="w-4 h-4"></i> Alunos
+                </a>
+                <a href="turmas.html" class="tab-btn flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm">
+                    <i data-lucide="graduation-cap" class="w-4 h-4"></i> Turmas
+                </a>
+                <a href="cefr.html" class="tab-btn flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm">
+                    <i data-lucide="book-marked" class="w-4 h-4"></i> CEFR
+                </a>
+                <a href="material.html" class="tab-btn active flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm">
+                    <i data-lucide="link-2" class="w-4 h-4"></i> Material
+                </a>
+                <a href="agenda.html" class="tab-btn flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm">
+                    <i data-lucide="calendar" class="w-4 h-4"></i> Agenda
+                </a>
+                <a href="financeiro.html" class="tab-btn flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm">
+                    <i data-lucide="wallet" class="w-4 h-4"></i> Pagamentos
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTEÚDO PRINCIPAL -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        <!-- Header Section -->
+        <!-- Header -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div>
-                <h2 class="text-2xl font-bold text-white">Links e Recursos</h2>
-                <p class="text-white/80 text-sm mt-1">Organize vídeos, PDFs e links externos</p>
+                <h2 class="text-2xl font-bold text-gray-900">Material de Apoio</h2>
+                <p class="text-gray-500 text-sm mt-1">Links, vídeos, PDFs e recursos organizados</p>
             </div>
-            <button onclick="openModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-white text-amber-600 rounded-lg font-medium hover:bg-gray-50 transition shadow-md">
+            <button onclick="openModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition shadow-sm">
                 <i data-lucide="plus" class="w-4 h-4"></i> Novo Material
             </button>
         </div>
 
-        <!-- Search & Filter -->
-        <div class="glass-effect rounded-2xl p-4 mb-6 shadow-lg">
+        <!-- Filtros -->
+        <div class="bg-white border border-gray-100 rounded-xl p-4 mb-6 shadow-sm">
             <div class="flex flex-col sm:flex-row gap-3">
                 <div class="relative flex-1">
                     <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
-                    <input type="text" id="searchInput" placeholder="Buscar por título..." class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <input type="text" id="searchInput" placeholder="Buscar por título ou descrição..." 
+                           class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
-                <select id="typeFilter" class="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <select id="typeFilter" class="px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500">
                     <option value="">Todos os Tipos</option>
                     <option value="link">Link</option>
                     <option value="video">Vídeo</option>
                     <option value="pdf">PDF</option>
                     <option value="audio">Áudio</option>
                 </select>
-                <select id="levelFilter" class="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <select id="levelFilter" class="px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500">
                     <option value="">Todos os Níveis</option>
+                    <option value="Global">Global</option>
                     <option value="A1">A1</option>
                     <option value="A2">A2</option>
                     <option value="B1">B1</option>
                     <option value="B2">B2</option>
                     <option value="C1">C1</option>
                     <option value="C2">C2</option>
-                    <option value="Global">Global</option>
                 </select>
             </div>
         </div>
 
-        <!-- Material Grid -->
-        <div id="materialList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Cards injected via JS -->
+        <!-- Grid de Materiais -->
+        <div id="materialList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <!-- Cards inseridos via JS -->
         </div>
 
         <!-- Empty State -->
         <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-center">
-            <div class="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center mb-4">
-                <i data-lucide="link-2" class="w-8 h-8 text-white/60"></i>
+            <div class="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                <i data-lucide="file-box" class="w-8 h-8 text-gray-400"></i>
             </div>
-            <h3 class="text-lg font-semibold text-white mb-2">Nenhum material encontrado</h3>
-            <p class="text-white/70 max-w-sm">Adicione links, vídeos ou PDFs clicando no botão acima.</p>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Nenhum material encontrado</h3>
+            <p class="text-gray-500 max-w-sm mb-4">Adicione links, vídeos ou PDFs clicando no botão acima.</p>
         </div>
+
     </main>
 
-    <!-- Modal -->
-    <div id="materialModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <div class="glass-effect rounded-2xl w-full max-w-lg p-6 shadow-2xl">
-            <div class="flex justify-between items-center mb-4">
-                <h3 id="modalTitle" class="text-lg font-semibold text-gray-800 dark:text-white">Novo Material</h3>
-                <button onclick="closeModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+    <!-- MODAL -->
+    <div id="materialModal" class="modal">
+        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modalTitle" class="text-lg font-semibold text-gray-900">Novo Material</h3>
+                <button onclick="closeModal()" class="p-2 hover:bg-gray-100 rounded-lg transition">
+                    <i data-lucide="x" class="w-5 h-5 text-gray-500"></i>
+                </button>
             </div>
             
             <form id="materialForm" class="space-y-4">
                 <input type="hidden" id="editId">
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Título *</label>
-                    <input type="text" id="titulo" required class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500" placeholder="Ex: Vídeo sobre Present Perfect">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Título *</label>
+                    <input type="text" id="titulo" required placeholder="Ex: Gramática - Present Perfect"
+                           class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
                 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo</label>
-                        <select id="tipo" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                            <option value="link">Link</option>
-                            <option value="video">Vídeo</option>
-                            <option value="pdf">PDF</option>
-                            <option value="audio">Áudio</option>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                        <select id="tipo" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="link">Link / Site</option>
+                            <option value="video">Vídeo (Youtube/Vimeo)</option>
+                            <option value="pdf">PDF / Documento</option>
+                            <option value="audio">Áudio / Podcast</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nível/Pasta</label>
-                        <select id="nivel" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nível / Pasta</label>
+                        <select id="nivel" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500">
                             <option value="Global">Global</option>
                             <option value="A1">A1</option>
                             <option value="A2">A2</option>
@@ -165,78 +224,66 @@
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">URL</label>
-                    <input type="url" id="url" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500" placeholder="https://...">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">URL *</label>
+                    <input type="url" id="url" required placeholder="https://..."
+                           class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Vincular a Aluno (opcional)</label>
-                    <select id="aluno" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                        <option value="">Global (sem aluno)</option>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Vincular a Aluno (Opcional)</label>
+                    <select id="alunoId" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="">Nenhum aluno (Público)</option>
+                        <!-- Alunos carregados via JS -->
                     </select>
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Descrição</label>
-                    <textarea id="descricao" rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" placeholder="Descrição do material..."></textarea>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+                    <textarea id="descricao" rows="2" placeholder="Notas sobre o material..."
+                              class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
                 </div>
                 
-                <div class="flex gap-3 pt-2">
-                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">Cancelar</button>
-                    <button type="submit" class="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium transition">Salvar</button>
+                <div class="flex gap-3 pt-4 border-t border-gray-100">
+                    <button type="button" onclick="closeModal()" 
+                            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium">
+                        Cancelar
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition font-medium">
+                        Salvar
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Floating Button -->
-    <div class="floating-btn">
-        <button onclick="openModal()" class="w-14 h-14 rounded-full bg-amber-600 hover:bg-amber-700 text-white shadow-lg flex items-center justify-center transition-all" title="Novo Material">
-            <i data-lucide="link-2" class="w-6 h-6"></i>
-        </button>
-    </div>
-
     <!-- Footer -->
-    <footer class="glass-effect border-t border-gray-200 dark:border-gray-700 mt-12 py-4">
-        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-gray-600 dark:text-gray-400">
-            © <span id="current-year"></span> Caderno Online
+    <footer class="bg-white border-t border-gray-100 py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500">
+            © <span id="year"></span> Caderno Online
         </div>
     </footer>
 
-    <!-- JavaScript -->
+    <!-- Scripts -->
+    <script src="app.js"></script>
     <script>
-        // === BANCO DE DADOS (Mesma estrutura do index.html) ===
-        const DB_KEY = 'cadernoOnlineDB';
-        
-        function getDB() {
-            const data = localStorage.getItem(DB_KEY);
-            return data ? JSON.parse(data) : {
-                alunos: [], turmas: [], cefr: [], material: [], agenda: [],
-                financeiro: { transacoes: [] }
-            };
-        }
-        
-        function saveDB(data) {
-            localStorage.setItem(DB_KEY, JSON.stringify(data));
-            renderMaterials();
-            // Notifica o index.html se estiver aberto em outra aba
-            if (typeof updateDashboard === 'function') updateDashboard();
-        }
-        
         // === TEMA ===
-        const html = document.documentElement;
-        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            html.classList.add('dark');
+        if (localStorage.getItem('theme') === 'dark' || 
+           (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
         }
-        document.getElementById('themeToggle').addEventListener('click', () => {
-            html.classList.toggle('dark');
-            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
-        });
-        document.getElementById('current-year').textContent = new Date().getFullYear();
         
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        });
+        
+        document.getElementById('year').textContent = new Date().getFullYear();
+
         // === RENDERIZAÇÃO ===
-        function renderMaterials() {
-            const db = getDB();
+        function renderMaterial() {
+            const db = CadernoDB.getDB();
+            const materials = db.material || [];
             const list = document.getElementById('materialList');
             const empty = document.getElementById('emptyState');
             
@@ -244,7 +291,7 @@
             const type = document.getElementById('typeFilter').value;
             const level = document.getElementById('levelFilter').value;
             
-            let filtered = db.material.filter(m => {
+            let filtered = materials.filter(m => {
                 const matchSearch = m.titulo.toLowerCase().includes(search);
                 const matchType = type ? m.tipo === type : true;
                 const matchLevel = level ? m.nivel === level : true;
@@ -257,164 +304,120 @@
                 empty.classList.add('flex');
                 return;
             }
+            
             empty.classList.add('hidden');
             empty.classList.remove('flex');
             
-            list.innerHTML = filtered.map((mat, idx) => {
-                const realIndex = db.material.findIndex(m => m.titulo === mat.titulo && m.url === mat.url);
-                
-                const iconMap = {
-                    video: 'youtube',
-                    pdf: 'file-text',
-                    audio: 'music',
-                    link: 'link'
-                };
-                
-                const colorMap = {
-                    video: 'text-red-600 bg-red-50 dark:bg-red-900/30 dark:text-red-400',
-                    pdf: 'text-orange-600 bg-orange-50 dark:bg-orange-900/30 dark:text-orange-400',
-                    audio: 'text-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-400',
-                    link: 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400'
-                };
-                
-                const icon = iconMap[mat.tipo] || 'link';
-                const color = colorMap[mat.tipo] || colorMap.link;
-                
-                const linkBtn = mat.url ? `
-                    <a href="${mat.url}" target="_blank" class="mt-3 inline-flex items-center gap-1.5 text-sm ${color.split(' ')[0]} hover:underline font-medium">
-                        <i data-lucide="external-link" class="h-3.5 w-3.5"></i> Abrir Recurso
+            const icons = { link: 'link', video: 'youtube', pdf: 'file-text', audio: 'music' };
+            const typeLabels = { link: 'Link', video: 'Vídeo', pdf: 'PDF', audio: 'Áudio' };
+            
+            list.innerHTML = filtered.map(m => `
+                <div class="material-card group">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="type-badge type-${m.tipo}">
+                                <i data-lucide="${icons[m.tipo] || 'file'}" class="w-3 h-3"></i>
+                                ${typeLabels[m.tipo] || 'Arquivo'}
+                            </span>
+                            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                                <button onclick="editMaterial('${m.id}')" class="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"><i data-lucide="pencil" class="w-3 h-3"></i></button>
+                                <button onclick="deleteMaterial('${m.id}')" class="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-gray-900 mb-1 truncate" title="${m.titulo}">${m.titulo}</h3>
+                        <p class="text-xs text-gray-500 mb-3">${m.nivel || 'Global'}</p>
+                        ${m.descricao ? `<p class="text-xs text-gray-600 line-clamp-2 mb-3">${m.descricao}</p>` : ''}
+                    </div>
+                    <a href="${m.url}" target="_blank" class="inline-flex items-center justify-center w-full py-2 bg-gray-50 hover:bg-purple-50 text-purple-600 text-sm font-medium rounded-lg transition border border-gray-100 hover:border-purple-200">
+                        <i data-lucide="external-link" class="w-4 h-4 mr-1"></i> Acessar
                     </a>
-                ` : '';
-                
-                return `
-                <div class="glass-effect rounded-2xl p-5 shadow-lg card-hover relative group">
-                    <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition flex gap-1">
-                        <button onclick="editMaterial(${realIndex})" class="p-1.5 bg-gray-100 dark:bg-gray-700 rounded hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-600 transition" title="Editar">
-                            <i data-lucide="pencil" class="w-4 h-4"></i>
-                        </button>
-                        <button onclick="deleteMaterial(${realIndex})" class="p-1.5 bg-gray-100 dark:bg-gray-700 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 transition" title="Excluir">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                            <i data-lucide="${icon}" class="w-5 h-5 ${color.split(' ')[0]}"></i>
-                        </div>
-                        <div>
-                            <h3 class="font-semibold text-gray-800 dark:text-white">${mat.titulo}</h3>
-                            <p class="text-xs text-gray-500">${mat.tipo} • ${mat.nivel}</p>
-                        </div>
-                    </div>
-                    
-                    ${mat.descricao ? `<p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">${mat.descricao}</p>` : ''}
-                    ${linkBtn}
-                </div>`;
-            }).join('');
+                </div>
+            `).join('');
             
             lucide.createIcons();
         }
-        
-        // === MODAL & FORMULÁRIO ===
-        function openModal(id = null) {
-            document.getElementById('materialModal').classList.add('open');
-            document.getElementById('modalTitle').textContent = id ? 'Editar Material' : 'Novo Material';
-            document.getElementById('materialForm').reset();
-            document.getElementById('editId').value = id ?? '';
-            populateAlunoSelect();
+
+        // === CARREGAR ALUNOS NO SELECT ===
+        function loadAlunosSelect() {
+            const db = CadernoDB.getDB();
+            const select = document.getElementById('alunoId');
+            const alunos = db.alunos || [];
             
-            if (id !== null) {
-                const db = getDB();
-                const mat = db.material[id];
-                if (mat) {
-                    document.getElementById('titulo').value = mat.titulo;
-                    document.getElementById('tipo').value = mat.tipo;
-                    document.getElementById('nivel').value = mat.nivel;
-                    document.getElementById('url').value = mat.url || '';
-                    document.getElementById('aluno').value = mat.alunoId || '';
-                    document.getElementById('descricao').value = mat.descricao || '';
-                }
-            }
-            lucide.createIcons();
-        }
-        
-        function closeModal() {
-            document.getElementById('materialModal').classList.remove('open');
-        }
-        
-        function populateAlunoSelect() {
-            const db = getDB();
-            const select = document.getElementById('aluno');
-            select.innerHTML = '<option value="">Global (sem aluno)</option>';
-            db.alunos.forEach(a => {
-                const option = document.createElement('option');
-                option.value = a.id;
-                option.textContent = `${a.nome} (${a.nivel || 'N/A'})`;
-                select.appendChild(option);
+            let options = '<option value="">Nenhum aluno (Público)</option>';
+            alunos.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(aluno => {
+                options += `<option value="${aluno.id}">${aluno.nome}</option>`;
             });
+            select.innerHTML = options;
         }
-        
-        // === SUBMIT DO FORMULÁRIO (com validação de duplicata) ===
+
+        // === MODAL ===
+        function openModal(id = null) {
+            const form = document.getElementById('materialForm');
+            const title = document.getElementById('modalTitle');
+            form.reset();
+            document.getElementById('editId').value = '';
+            loadAlunosSelect();
+            
+            if (id) {
+                const m = CadernoDB.getDB().material.find(x => x.id === id);
+                if (m) {
+                    title.textContent = 'Editar Material';
+                    document.getElementById('editId').value = m.id;
+                    document.getElementById('titulo').value = m.titulo;
+                    document.getElementById('tipo').value = m.tipo;
+                    document.getElementById('nivel').value = m.nivel;
+                    document.getElementById('url').value = m.url;
+                    document.getElementById('alunoId').value = m.alunoId || '';
+                    document.getElementById('descricao').value = m.descricao || '';
+                }
+            } else {
+                title.textContent = 'Novo Material';
+            }
+            document.getElementById('materialModal').classList.add('active');
+            lucide.createIcons();
+        }
+
+        function closeModal() {
+            document.getElementById('materialModal').classList.remove('active');
+        }
+
+        // === FORM & ACTIONS ===
         document.getElementById('materialForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const db = getDB();
             const id = document.getElementById('editId').value;
-            const titulo = document.getElementById('titulo').value.trim();
-            
-            // Validação: não permitir títulos duplicados
-            const exists = db.material.some((m, i) => 
-                m.titulo.toLowerCase() === titulo.toLowerCase() && 
-                m.url === document.getElementById('url').value.trim() && 
-                i != id
-            );
-            if (exists) {
-                alert('⚠️ Já existe um material com este título e URL!');
-                return;
-            }
-            
-            const materialData = {
-                titulo: titulo,
+            const data = {
+                titulo: document.getElementById('titulo').value,
                 tipo: document.getElementById('tipo').value,
                 nivel: document.getElementById('nivel').value,
-                url: document.getElementById('url').value.trim(),
-                alunoId: document.getElementById('aluno').value || null,
-                descricao: document.getElementById('descricao').value.trim()
+                url: document.getElementById('url').value,
+                alunoId: document.getElementById('alunoId').value || null,
+                descricao: document.getElementById('descricao').value
             };
             
-            if (id !== '') {
-                db.material[id] = { ...db.material[id], ...materialData };
-            } else {
-                db.material.push(materialData);
-            }
+            if (id) CadernoDB.updateMaterial(id, data);
+            else CadernoDB.addMaterial(data);
             
-            saveDB(db);
             closeModal();
+            renderMaterial();
         });
-        
-        // === AÇÕES ===
-        function editMaterial(index) { openModal(index); }
-        
-        function deleteMaterial(index) {
-            if (!confirm('Tem certeza que deseja excluir este material?')) return;
-            const db = getDB();
-            db.material.splice(index, 1);
-            saveDB(db);
+
+        function editMaterial(id) { openModal(id); }
+        function deleteMaterial(id) {
+            if (CadernoDB.deleteMaterial(id)) renderMaterial();
         }
-        
-        // === FILTERS ===
-        document.getElementById('searchInput').addEventListener('input', renderMaterials);
-        document.getElementById('typeFilter').addEventListener('change', renderMaterials);
-        document.getElementById('levelFilter').addEventListener('change', renderMaterials);
-        
-        // === CLOSE MODAL ON ESC / CLICK OUTSIDE ===
+
+        // === INICIALIZAÇÃO ===
+        document.getElementById('searchInput').addEventListener('input', renderMaterial);
+        document.getElementById('typeFilter').addEventListener('change', renderMaterial);
+        document.getElementById('levelFilter').addEventListener('change', renderMaterial);
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
         document.getElementById('materialModal').addEventListener('click', e => { if (e.target.id === 'materialModal') closeModal(); });
         
-        // === INIT ===
         document.addEventListener('DOMContentLoaded', () => {
-            renderMaterials();
+            renderMaterial();
             lucide.createIcons();
         });
+        window.addEventListener('db-updated', renderMaterial);
     </script>
 </body>
 </html>
