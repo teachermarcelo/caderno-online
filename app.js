@@ -10,13 +10,15 @@ function getDB() {
         cefr: [],
         material: [],
         agenda: [],
-        financeiro: []
+        financeiro: [] // Array de transações
     };
 }
 
 function saveDB(db) {
     localStorage.setItem(DB_KEY, JSON.stringify(db));
+    // Dispara evento para atualizar outras páginas/abas
     window.dispatchEvent(new Event('db-updated'));
+    window.dispatchEvent(new Event('storage'));
 }
 
 function generateId() {
@@ -27,7 +29,7 @@ function generateId() {
 function addAluno(data) {
     const db = getDB();
     if (db.alunos.some(a => a.nome.toLowerCase() === data.nome.toLowerCase())) {
-        alert('Já existe um aluno com este nome!');
+        alert('⚠️ Já existe um aluno com este nome!');
         return false;
     }
     data.id = generateId();
@@ -52,6 +54,35 @@ function deleteAluno(id) {
     if (!confirm('Excluir este aluno?')) return false;
     const db = getDB();
     db.alunos = db.alunos.filter(a => a.id !== id);
+    saveDB(db);
+    return true;
+}
+
+// ===== TURMAS =====
+function addTurma(data) {
+    const db = getDB();
+    data.id = generateId();
+    data.created_at = new Date().toISOString();
+    db.turmas.push(data);
+    saveDB(db);
+    return true;
+}
+
+function updateTurma(id, newData) {
+    const db = getDB();
+    const index = db.turmas.findIndex(t => t.id === id);
+    if (index !== -1) {
+        db.turmas[index] = { ...db.turmas[index], ...newData };
+        saveDB(db);
+        return true;
+    }
+    return false;
+}
+
+function deleteTurma(id) {
+    if (!confirm('Excluir esta turma?')) return false;
+    const db = getDB();
+    db.turmas = db.turmas.filter(t => t.id !== id);
     saveDB(db);
     return true;
 }
@@ -116,35 +147,6 @@ function deleteFinanceiro(id) {
     return true;
 }
 
-// ===== TURMAS =====
-function addTurma(data) {
-    const db = getDB();
-    data.id = generateId();
-    data.created_at = new Date().toISOString();
-    db.turmas.push(data);
-    saveDB(db);
-    return true;
-}
-
-function updateTurma(id, newData) {
-    const db = getDB();
-    const index = db.turmas.findIndex(t => t.id === id);
-    if (index !== -1) {
-        db.turmas[index] = { ...db.turmas[index], ...newData };
-        saveDB(db);
-        return true;
-    }
-    return false;
-}
-
-function deleteTurma(id) {
-    if (!confirm('Excluir esta turma?')) return false;
-    const db = getDB();
-    db.turmas = db.turmas.filter(t => t.id !== id);
-    saveDB(db);
-    return true;
-}
-
 // ===== CEFR =====
 function addCEFR(data) {
     const db = getDB();
@@ -155,7 +157,19 @@ function addCEFR(data) {
     return true;
 }
 
+function updateCEFR(id, newData) {
+    const db = getDB();
+    const index = db.cefr.findIndex(c => c.id === id);
+    if (index !== -1) {
+        db.cefr[index] = { ...db.cefr[index], ...newData };
+        saveDB(db);
+        return true;
+    }
+    return false;
+}
+
 function deleteCEFR(id) {
+    if (!confirm('Excluir esta aula?')) return false;
     const db = getDB();
     db.cefr = db.cefr.filter(c => c.id !== id);
     saveDB(db);
@@ -172,7 +186,19 @@ function addMaterial(data) {
     return true;
 }
 
+function updateMaterial(id, newData) {
+    const db = getDB();
+    const index = db.material.findIndex(m => m.id === id);
+    if (index !== -1) {
+        db.material[index] = { ...db.material[index], ...newData };
+        saveDB(db);
+        return true;
+    }
+    return false;
+}
+
 function deleteMaterial(id) {
+    if (!confirm('Excluir este material?')) return false;
     const db = getDB();
     db.material = db.material.filter(m => m.id !== id);
     saveDB(db);
@@ -316,6 +342,10 @@ window.CadernoDB = {
     addAluno,
     updateAluno,
     deleteAluno,
+    // Turmas
+    addTurma,
+    updateTurma,
+    deleteTurma,
     // Agenda
     addAgenda,
     updateAgenda,
@@ -324,15 +354,13 @@ window.CadernoDB = {
     addFinanceiro,
     updateFinanceiro,
     deleteFinanceiro,
-    // Turmas
-    addTurma,
-    updateTurma,
-    deleteTurma,
     // CEFR
     addCEFR,
+    updateCEFR,
     deleteCEFR,
     // Material
     addMaterial,
+    updateMaterial,
     deleteMaterial
 };
 
