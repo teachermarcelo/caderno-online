@@ -1,491 +1,643 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Caderno Online - Plataforma de Ensino de Idiomas</title>
+    <title>Dashboard - Caderno Online</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238b5cf6'><path d='M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25'/></svg>">
+    
+    <!-- Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        primary: '#8b5cf6', secondary: '#ec4899', success: '#10b981',
+                        warning: '#f59e0b', danger: '#ef4444', info: '#3b82f6'
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                    },
+                    keyframes: {
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-8px)' } }
+                    }
                 }
             }
         }
     </script>
+    
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .tab-btn.active { background: white; color: #1f2937; font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-        .card-stat { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; transition: all 0.2s; }
-        .card-stat:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
-        .card-section { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; }
-        .progress-bar { background: #f3f4f6; border-radius: 6px; height: 8px; flex: 1; overflow: hidden; }
-        .progress-fill { height: 100%; border-radius: 6px; transition: width 0.5s ease; }
-        .loading { opacity: 0.6; pointer-events: none; }
-        .sync-indicator { 
-            position: fixed; 
-            top: 70px; 
-            right: 20px; 
-            background: white; 
-            padding: 8px 12px; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            z-index: 100;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            min-height: 100vh;
+            transition: background 0.3s ease;
         }
-        .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; }
-        .sync-dot.syncing { background: #f59e0b; animation: pulse 1s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .dark body { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+        
+        /* Glass Effect */
+        .glass { 
+            background: rgba(255, 255, 255, 0.92); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .dark .glass { 
+            background: rgba(15, 23, 42, 0.92); 
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        /* Cards */
+        .card { 
+            background: white; 
+            border-radius: 16px; 
+            padding: 20px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+        .dark .card { background: #1e293b; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.12); }
+        .dark .card:hover { box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+        
+        /* Stats */
+        .stat-card { display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 14px; }
+        .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .stat-icon.purple { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+        .stat-icon.blue { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+        .stat-icon.green { background: linear-gradient(135deg, #10b981, #34d399); }
+        .stat-icon.orange { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+        .stat-icon.red { background: linear-gradient(135deg, #ef4444, #f87171); }
+        .stat-icon.amber { background: linear-gradient(135deg, #f59e0b, #fcd34d); }
+        
+        /* Tabs */
+        .tab-btn { transition: all 0.2s ease; }
+        .tab-btn.active { background: white; color: #1f2937; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .dark .tab-btn.active { background: #334155; color: white; }
+        
+        /* Charts Container */
+        .chart-container { position: relative; height: 250px; width: 100%; }
+        
+        /* Progress Bars */
+        .progress-track { background: #e5e7eb; border-radius: 6px; height: 8px; flex: 1; overflow: hidden; }
+        .dark .progress-track { background: #334155; }
+        .progress-fill { height: 100%; border-radius: 6px; transition: width 0.6s ease; }
+        
+        /* Floating Button */
+        .floating-btn { 
+            position: fixed; bottom: 24px; right: 24px; 
+            width: 56px; height: 56px; border-radius: 50%;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            color: white; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4);
+            transition: all 0.3s ease; animation: float 3s ease-in-out infinite; z-index: 100;
+        }
+        .floating-btn:hover { transform: scale(1.1); box-shadow: 0 12px 40px rgba(139, 92, 246, 0.6); }
+        
+        /* Sync Badge */
+        .sync-badge { 
+            position: fixed; top: 72px; right: 16px; 
+            padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 500;
+            display: flex; align-items: center; gap: 6px; z-index: 999;
+            backdrop-filter: blur(8px);
+        }
+        .sync-badge.ok { background: rgba(16, 185, 129, 0.9); color: white; }
+        .sync-badge.error { background: rgba(239, 68, 68, 0.9); color: white; }
+        .sync-badge.syncing { background: rgba(245, 158, 11, 0.9); color: white; }
+        .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+        .sync-dot.pulse { animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        
+        /* Debug Panel */
+        .debug-panel { 
+            position: fixed; bottom: 0; left: 0; right: 0; 
+            background: #0f172a; color: #22d3ee; font-family: monospace; 
+            font-size: 11px; padding: 10px 16px; max-height: 150px; overflow-y: auto; 
+            z-index: 2000; display: none; border-top: 1px solid #334155;
+        }
+        .debug-panel.active { display: block; }
+        .debug-log { margin: 2px 0; }
+        .debug-log.info { color: #60a5fa; }
+        .debug-log.success { color: #4ade80; }
+        .debug-log.error { color: #f87171; }
+        .debug-log.warn { color: #fbbf24; }
+        
+        /* Loading Overlay */
+        .loading-overlay { 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.4); 
+            display: none; align-items: center; justify-content: center; z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+        .loading-overlay.active { display: flex; }
+        .loading-box { 
+            background: white; padding: 24px 32px; border-radius: 16px; 
+            display: flex; align-items: center; gap: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .dark .loading-box { background: #1e293b; }
+        
+        /* Gradient Text */
+        .gradient-text { 
+            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+            .chart-container { height: 200px; }
+        }
     </style>
 </head>
-<body class="min-h-screen">
+<body class="text-gray-800 dark:text-gray-200 transition-colors duration-300">
 
-    <!-- HEADER -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4">
-            <div class="flex items-center justify-between h-14">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                        <i data-lucide="book-open" class="w-4 h-4 text-white"></i>
+    <!-- Debug Toggle -->
+    <button onclick="toggleDebug()" class="fixed bottom-4 left-4 z-[2001] px-3 py-1.5 bg-gray-800/90 text-white text-xs rounded-full hover:bg-gray-700 transition backdrop-blur-sm">🐛 Debug</button>
+    <div id="debugPanel" class="debug-panel"></div>
+
+    <!-- Sync Badge -->
+    <div id="syncBadge" class="sync-badge ok">
+        <div class="sync-dot" id="syncDot"></div>
+        <span id="syncText">Sincronizado</span>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-box glass">
+            <div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <span class="text-sm font-medium">Sincronizando...</span>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="glass sticky top-0 z-50 border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
+                        <i data-lucide="book-open" class="w-5 h-5 text-white"></i>
                     </div>
-                    <span class="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
-                        Caderno Online
-                    </span>
+                    <h1 class="text-xl font-bold gradient-text hidden sm:block">Caderno Online</h1>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button onclick="syncData()" class="p-2 rounded-lg hover:bg-gray-100 transition" title="Sincronizar">
-                        <i data-lucide="refresh-cw" class="w-4 h-4 text-gray-400" id="sync-icon"></i>
+                    <button onclick="syncData()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition" title="Sincronizar">
+                        <i data-lucide="refresh-cw" class="w-5 h-5" id="syncIcon"></i>
+                    </button>
+                    <button id="themeToggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition" title="Alternar tema">
+                        <i data-lucide="sun" class="w-5 h-5 hidden dark:block text-yellow-400"></i>
+                        <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
                     </button>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- Sync Indicator -->
-    <div class="sync-indicator">
-        <div class="sync-dot" id="sync-dot"></div>
-        <span id="sync-text">Sincronizado</span>
-    </div>
-
-    <main class="max-w-6xl mx-auto px-4 py-4">
-
-        <!-- TABS -->
-        <div class="bg-gray-100 rounded-xl p-1 flex gap-0.5 mb-6 overflow-x-auto">
-            <a href="index.html" class="tab-btn active flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-gray-500 whitespace-nowrap">
-                <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> Home
+    <!-- Navigation Tabs -->
+    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="glass rounded-xl p-1 flex gap-0.5 overflow-x-auto">
+            <a href="index.html" class="tab-btn active flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm whitespace-nowrap">
+                <i data-lucide="layout-grid" class="w-4 h-4"></i> Dashboard
             </a>
-            <a href="alunos.html" class="tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">
-                <i data-lucide="users" class="w-3.5 h-3.5"></i> Alunos
+            <a href="alunos.html" class="tab-btn flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm whitespace-nowrap hover:bg-white/50 dark:hover:bg-gray-800/50">
+                <i data-lucide="users" class="w-4 h-4"></i> Alunos
             </a>
-            <a href="turmas.html" class="tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">
-                <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i> Turmas
+            <a href="turmas.html" class="tab-btn flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm whitespace-nowrap hover:bg-white/50 dark:hover:bg-gray-800/50">
+                <i data-lucide="graduation-cap" class="w-4 h-4"></i> Turmas
             </a>
-            <a href="cefr.html" class="tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">
-                <i data-lucide="book-marked" class="w-3.5 h-3.5"></i> CEFR
+            <a href="cefr.html" class="tab-btn flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm whitespace-nowrap hover:bg-white/50 dark:hover:bg-gray-800/50">
+                <i data-lucide="book-marked" class="w-4 h-4"></i> CEFR
             </a>
-            <a href="material.html" class="tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">
-                <i data-lucide="link-2" class="w-3.5 h-3.5"></i> Material
+            <a href="material.html" class="tab-btn flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm whitespace-nowrap hover:bg-white/50 dark:hover:bg-gray-800/50">
+                <i data-lucide="link-2" class="w-4 h-4"></i> Material
             </a>
-            <a href="agenda.html" class="tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">
-                <i data-lucide="calendar" class="w-3.5 h-3.5"></i> Agenda
+            <a href="agenda.html" class="tab-btn flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm whitespace-nowrap hover:bg-white/50 dark:hover:bg-gray-800/50">
+                <i data-lucide="calendar" class="w-4 h-4"></i> Agenda
             </a>
-            <a href="financeiro.html" class="tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap">
-                <i data-lucide="wallet" class="w-3.5 h-3.5"></i> Financeiro
+            <a href="financeiro.html" class="tab-btn flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm whitespace-nowrap hover:bg-white/50 dark:hover:bg-gray-800/50">
+                <i data-lucide="wallet" class="w-4 h-4"></i> Financeiro
             </a>
         </div>
+    </nav>
 
-        <!-- LOADING STATE -->
-        <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
-            <div class="bg-white rounded-xl p-6 flex items-center gap-3">
-                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
-                <span class="text-sm font-medium">Sincronizando...</span>
-            </div>
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+        
+        <!-- Welcome -->
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-white">👋 Olá, Professor(a)!</h2>
+            <p class="text-white/80 text-sm mt-1">Visão geral do seu caderno online</p>
         </div>
 
-        <!-- STATS GRID -->
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
-            <div class="card-stat flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
-                    <i data-lucide="users" class="w-5 h-5 text-purple-600"></i>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-500 font-medium">Alunos</p>
-                    <p class="text-xl font-bold text-gray-900" id="stat-alunos">-</p>
-                </div>
+        <!-- Stats Grid -->
+        <div class="grid stats-grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+            <div class="card stat-card">
+                <div class="stat-icon purple"><i data-lucide="users" class="w-6 h-6 text-white"></i></div>
+                <div><p class="text-xs text-gray-500 dark:text-gray-400">Alunos</p><p class="text-xl font-bold" id="stat-alunos">-</p></div>
             </div>
-            <div class="card-stat flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
-                    <i data-lucide="graduation-cap" class="w-5 h-5 text-blue-600"></i>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-500 font-medium">Turmas</p>
-                    <p class="text-xl font-bold text-gray-900" id="stat-turmas">-</p>
-                </div>
+            <div class="card stat-card">
+                <div class="stat-icon blue"><i data-lucide="graduation-cap" class="w-6 h-6 text-white"></i></div>
+                <div><p class="text-xs text-gray-500 dark:text-gray-400">Turmas</p><p class="text-xl font-bold" id="stat-turmas">-</p></div>
             </div>
-            <div class="card-stat flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                    <i data-lucide="book-marked" class="w-5 h-5 text-emerald-600"></i>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-500 font-medium">Aulas CEFR</p>
-                    <p class="text-xl font-bold text-gray-900" id="stat-cefr">-</p>
-                </div>
+            <div class="card stat-card">
+                <div class="stat-icon green"><i data-lucide="book-open" class="w-6 h-6 text-white"></i></div>
+                <div><p class="text-xs text-gray-500 dark:text-gray-400">Aulas CEFR</p><p class="text-xl font-bold" id="stat-cefr">-</p></div>
             </div>
-            <div class="card-stat flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
-                    <i data-lucide="calendar-check" class="w-5 h-5 text-orange-600"></i>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-500 font-medium">Aulas Agendadas</p>
-                    <p class="text-xl font-bold text-gray-900" id="stat-agendadas">-</p>
-                </div>
+            <div class="card stat-card">
+                <div class="stat-icon orange"><i data-lucide="calendar-check" class="w-6 h-6 text-white"></i></div>
+                <div><p class="text-xs text-gray-500 dark:text-gray-400">Agendadas</p><p class="text-xl font-bold" id="stat-agendadas">-</p></div>
             </div>
-            <div class="card-stat flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
-                    <i data-lucide="circle-check-big" class="w-5 h-5 text-green-600"></i>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-500 font-medium">Concluídas</p>
-                    <p class="text-xl font-bold text-green-600" id="stat-concluidas">-</p>
-                </div>
+            <div class="card stat-card">
+                <div class="stat-icon green"><i data-lucide="circle-check" class="w-6 h-6 text-white"></i></div>
+                <div><p class="text-xs text-gray-500 dark:text-gray-400">Concluídas</p><p class="text-xl font-bold text-green-600" id="stat-concluidas">-</p></div>
             </div>
-            <div class="card-stat flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-                    <i data-lucide="loader" class="w-5 h-5 text-amber-600"></i>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-500 font-medium">Em Andamento</p>
-                    <p class="text-xl font-bold text-amber-600" id="stat-andamento">-</p>
-                </div>
+            <div class="card stat-card">
+                <div class="stat-icon amber"><i data-lucide="loader" class="w-6 h-6 text-white"></i></div>
+                <div><p class="text-xs text-gray-500 dark:text-gray-400">Em andamento</p><p class="text-xl font-bold text-amber-600" id="stat-andamento">-</p></div>
             </div>
         </div>
 
-        <!-- RESUMO FINANCEIRO -->
-        <div class="card-section mb-4">
-            <h3 class="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <i data-lucide="wallet" class="w-4 h-4 text-purple-500"></i>
-                Resumo Financeiro
-            </h3>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div class="bg-green-50 border border-green-100 rounded-xl p-4">
-                    <div class="flex items-center gap-2 mb-1">
-                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-green-600"></i>
-                        <span class="text-xs font-medium text-green-700">Entradas</span>
-                    </div>
-                    <p class="text-lg font-bold text-green-700" id="fin-entradas">R$ 0,00</p>
-                </div>
-                <div class="bg-red-50 border border-red-100 rounded-xl p-4">
-                    <div class="flex items-center gap-2 mb-1">
-                        <i data-lucide="arrow-down-right" class="w-4 h-4 text-red-600"></i>
-                        <span class="text-xs font-medium text-red-700">Saídas</span>
-                    </div>
-                    <p class="text-lg font-bold text-red-700" id="fin-saidas">R$ 0,00</p>
-                </div>
-                <div class="bg-purple-50 border border-purple-100 rounded-xl p-4">
-                    <div class="flex items-center gap-2 mb-1">
-                        <i data-lucide="dollar-sign" class="w-4 h-4 text-purple-600"></i>
-                        <span class="text-xs font-medium text-purple-700">Saldo</span>
-                    </div>
-                    <p class="text-lg font-bold text-purple-700" id="fin-saldo">R$ 0,00</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- DISTRIBUIÇÃO CEFR -->
-        <div class="card-section mb-4">
-            <h3 class="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <i data-lucide="bar-chart-3" class="w-4 h-4 text-purple-500"></i>
-                Distribuição CEFR
-            </h3>
-            <div class="space-y-2.5" id="cefr-bars">
-                <div class="flex items-center gap-3">
-                    <span class="text-xs font-semibold text-gray-700 w-6">A1</span>
-                    <div class="progress-bar"><div class="progress-fill bg-red-400" style="width: 0%"></div></div>
-                    <span class="text-xs text-gray-500 w-4 text-right" id="cefr-a1">0</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <span class="text-xs font-semibold text-gray-700 w-6">A2</span>
-                    <div class="progress-bar"><div class="progress-fill bg-orange-400" style="width: 0%"></div></div>
-                    <span class="text-xs text-gray-500 w-4 text-right" id="cefr-a2">0</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <span class="text-xs font-semibold text-gray-700 w-6">B1</span>
-                    <div class="progress-bar"><div class="progress-fill bg-yellow-400" style="width: 0%"></div></div>
-                    <span class="text-xs text-gray-500 w-4 text-right" id="cefr-b1">0</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <span class="text-xs font-semibold text-gray-700 w-6">B2</span>
-                    <div class="progress-bar"><div class="progress-fill bg-lime-400" style="width: 0%"></div></div>
-                    <span class="text-xs text-gray-500 w-4 text-right" id="cefr-b2">0</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <span class="text-xs font-semibold text-gray-700 w-6">C1</span>
-                    <div class="progress-bar"><div class="progress-fill bg-green-500" style="width: 0%"></div></div>
-                    <span class="text-xs text-gray-500 w-4 text-right" id="cefr-c1">0</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <span class="text-xs font-semibold text-gray-700 w-6">C2</span>
-                    <div class="progress-bar"><div class="progress-fill bg-emerald-500" style="width: 0%"></div></div>
-                    <span class="text-xs text-gray-500 w-4 text-right" id="cefr-c2">0</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- BOTTOM CARDS -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="card-section">
-                <h3 class="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <i data-lucide="users" class="w-4 h-4 text-purple-500"></i>
-                    Alunos Recentes
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <!-- CEFR Distribution Chart -->
+            <div class="card">
+                <h3 class="text-sm font-semibold mb-4 flex items-center gap-2">
+                    <i data-lucide="pie-chart" class="w-4 h-4 text-primary"></i> Distribuição por Nível CEFR
                 </h3>
-                <div id="recent-students" class="space-y-2">
-                    <div class="text-center py-6 text-gray-400 text-xs">Carregando...</div>
+                <div class="chart-container">
+                    <canvas id="cefrChart"></canvas>
                 </div>
             </div>
-            <div class="card-section">
-                <h3 class="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <i data-lucide="calendar" class="w-4 h-4 text-purple-500"></i>
-                    Próximas Aulas
+            
+            <!-- Financial Chart -->
+            <div class="card">
+                <h3 class="text-sm font-semibold mb-4 flex items-center gap-2">
+                    <i data-lucide="trending-up" class="w-4 h-4 text-success"></i> Resumo Financeiro
                 </h3>
-                <div id="upcoming-classes" class="space-y-2">
-                    <div class="text-center py-6 text-gray-400 text-xs">Carregando...</div>
+                <div class="grid grid-cols-3 gap-3 mb-4">
+                    <div class="text-center p-3 rounded-xl bg-green-50 dark:bg-green-900/20">
+                        <p class="text-xs text-green-700 dark:text-green-400">Entradas</p>
+                        <p class="text-lg font-bold text-green-700 dark:text-green-400" id="fin-entradas">R$ 0,00</p>
+                    </div>
+                    <div class="text-center p-3 rounded-xl bg-red-50 dark:bg-red-900/20">
+                        <p class="text-xs text-red-700 dark:text-red-400">Saídas</p>
+                        <p class="text-lg font-bold text-red-700 dark:text-red-400" id="fin-saidas">R$ 0,00</p>
+                    </div>
+                    <div class="text-center p-3 rounded-xl bg-primary/10">
+                        <p class="text-xs text-primary">Saldo</p>
+                        <p class="text-lg font-bold text-primary" id="fin-saldo">R$ 0,00</p>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="financeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Recent Students -->
+            <div class="card">
+                <h3 class="text-sm font-semibold mb-4 flex items-center gap-2">
+                    <i data-lucide="users" class="w-4 h-4 text-primary"></i> Alunos Recentes
+                </h3>
+                <div id="recent-students" class="space-y-2 max-h-64 overflow-y-auto">
+                    <div class="text-center py-8 text-gray-400 text-sm">Carregando...</div>
+                </div>
+            </div>
+            
+            <!-- Upcoming Classes -->
+            <div class="card">
+                <h3 class="text-sm font-semibold mb-4 flex items-center gap-2">
+                    <i data-lucide="calendar" class="w-4 h-4 text-primary"></i> Próximas Aulas
+                </h3>
+                <div id="upcoming-classes" class="space-y-2 max-h-64 overflow-y-auto">
+                    <div class="text-center py-8 text-gray-400 text-sm">Carregando...</div>
                 </div>
             </div>
         </div>
 
     </main>
 
+    <!-- Floating Quick Add Button -->
+    <a href="alunos.html" class="floating-btn" title="Novo Aluno">
+        <i data-lucide="plus" class="w-6 h-6"></i>
+    </a>
+
+    <!-- Footer -->
+    <footer class="glass border-t border-gray-200/50 dark:border-gray-700/50 mt-8 py-4">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-gray-500 dark:text-gray-400">
+            © <span id="current-year"></span> Caderno Online • Plataforma de Ensino de Idiomas
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
     <script>
-    // Configuração do Supabase
-const SUPABASE_URL = 'https://rvgcniaowzmsudzliozf.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_N_xCS0lbbTvG7qWTpAw0ag_vlg1lbHb';
-
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-let db = {
-    alunos: [],
-    turmas: [],
-    cefr: [],
-    material: [],
-    agenda: [],
-    financeiro: []
-};
-
-// Funções de utilidade
-function formatCurrency(value) {
-    return parseFloat(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-function showSyncStatus(message, syncing = false) {
-    const dot = document.getElementById('sync-dot');
-    const text = document.getElementById('sync-text');
-    if (dot && text) {
-        text.textContent = message;
-        if (syncing) {
-            dot.classList.add('syncing');
-            const overlay = document.getElementById('loading-overlay');
-            if (overlay) {
-                overlay.classList.remove('hidden');
-                overlay.classList.add('flex');
-            }
-        } else {
-            dot.classList.remove('syncing');
-            setTimeout(() => {
-                const overlay = document.getElementById('loading-overlay');
-                if (overlay) {
-                    overlay.classList.add('hidden');
-                    overlay.classList.remove('flex');
-                }
-            }, 500);
-        }
-    }
-}
-
-// Carregar dados do Supabase
-async function loadData() {
-    try {
-        showSyncStatus('Carregando...', true);
+        // === CONFIGURAÇÃO ===
+        const SUPABASE_URL = 'https://rvgcniaowzmsudzliozf.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_N_xCS0lbbTvG7qWTpAw0ag_vlg1lbHb';
+        const DB_KEY = 'cadernoOnlineDB';
         
-        const [alunos, turmas, cefr, material, agenda, financeiro] = await Promise.all([
-            supabase.from('caderno_alunos').select('*').order('created_at', { ascending: false }),
-            supabase.from('caderno_turmas').select('*').order('created_at', { ascending: false }),
-            supabase.from('caderno_cefr').select('*').order('created_at', { ascending: false }),
-            supabase.from('caderno_material').select('*').order('created_at', { ascending: false }),
-            supabase.from('caderno_agenda').select('*').order('data', { ascending: true }),
-            supabase.from('caderno_financeiro').select('*').order('created_at', { ascending: false })
-        ]);
+        let supabase = null;
+        let db = { alunos: [], turmas: [], cefr: [], material: [], agenda: [], financeiro: [] };
+        let useSupabase = true;
+        let charts = {};
 
-        if (alunos.error) throw alunos.error;
-        if (turmas.error) throw turmas.error;
-        if (cefr.error) throw cefr.error;
-        if (material.error) throw material.error;
-        if (agenda.error) throw agenda.error;
-        if (financeiro.error) throw financeiro.error;
+        // === DEBUG ===
+        function log(msg, type = 'info') {
+            const panel = document.getElementById('debugPanel');
+            const time = new Date().toLocaleTimeString();
+            panel.innerHTML += `<div class="debug-log ${type}">[${time}] ${msg}</div>`;
+            panel.scrollTop = panel.scrollHeight;
+            console.log(`[Dashboard] ${msg}`);
+        }
+        function toggleDebug() { document.getElementById('debugPanel').classList.toggle('active'); }
+        function showSyncStatus(message, type = 'ok') {
+            const badge = document.getElementById('syncBadge');
+            const dot = document.getElementById('syncDot');
+            const text = document.getElementById('syncText');
+            text.textContent = message;
+            badge.className = `sync-badge ${type}`;
+            dot.classList.toggle('pulse', type === 'syncing');
+        }
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').classList.toggle('active', show);
+        }
 
-        db = {
-            alunos: alunos.data || [],
-            turmas: turmas.data || [],
-            cefr: cefr.data || [],
-            material: material.data || [],
-            agenda: agenda.data || [],
-            financeiro: financeiro.data || []
-        };
+        // === INICIALIZAÇÃO SUPABASE ===
+        function initSupabase() {
+            try {
+                // CDN v2 expõe global 'supabase'
+                if (typeof supabase !== 'undefined') {
+                    window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    supabase = window.supabaseClient;
+                    log('✅ Supabase inicializado', 'success');
+                    return true;
+                }
+                throw new Error('Supabase CDN não carregou');
+            } catch (e) {
+                log('⚠️ Supabase falhou: ' + e.message, 'warn');
+                useSupabase = false;
+                return false;
+            }
+        }
 
-        updateDashboard();
-        showSyncStatus('Sincronizado', false);
-    } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-        showSyncStatus('Erro na sincronização', false);
-        alert('Erro ao carregar dados: ' + error.message);
-    }
-}
+        // === LOCALSTORAGE ===
+        function getLocalDB() {
+            try {
+                const data = localStorage.getItem(DB_KEY);
+                return data ? JSON.parse(data) : { alunos: [], turmas: [], cefr: [], material: [], agenda: [], financeiro: [] };
+            } catch { return { alunos: [], turmas: [], cefr: [], material: [], agenda: [], financeiro: [] }; }
+        }
+        function saveLocalDB(data) {
+            try { localStorage.setItem(DB_KEY, JSON.stringify(data)); } catch (e) { log('Erro localStorage: ' + e.message, 'error'); }
+        }
 
-// Sincronizar manualmente
-async function syncData() {
-    const icon = document.getElementById('sync-icon');
-    if (icon) {
-        icon.classList.add('animate-spin');
-        await loadData();
-        setTimeout(() => icon.classList.remove('animate-spin'), 500);
-    }
-}
+        // === CARREGAR DADOS ===
+        async function loadData() {
+            if (!useSupabase) {
+                log('📦 Carregando do localStorage', 'info');
+                db = getLocalDB();
+                updateUI();
+                showSyncStatus('Modo Local', 'ok');
+                return;
+            }
+            try {
+                log('☁️ Buscando no Supabase...', 'info');
+                showSyncStatus('Carregando...', 'syncing');
+                showLoading(true);
+                
+                const tables = ['caderno_alunos', 'caderno_turmas', 'caderno_cefr', 'caderno_material', 'caderno_agenda', 'caderno_financeiro'];
+                const results = await Promise.all(tables.map(t => supabase.from(t).select('*')));
+                
+                // Verifica erros
+                for (let i = 0; i < results.length; i++) {
+                    if (results[i].error) {
+                        // Se falhar RLS ou tabela não existir, fallback para local
+                        if (results[i].error.message.includes('row-level security') || results[i].error.message.includes('does not exist')) {
+                            log(`⚠️ Tabela ${tables[i]} com problema - usando localStorage`, 'warn');
+                            useSupabase = false;
+                            db = getLocalDB();
+                            updateUI();
+                            showSyncStatus('Modo Local', 'ok');
+                            showLoading(false);
+                            return;
+                        }
+                        throw results[i].error;
+                    }
+                }
+                
+                db = {
+                    alunos: results[0].data || [],
+                    turmas: results[1].data || [],
+                    cefr: results[2].data || [],
+                    material: results[3].data || [],
+                    agenda: results[4].data || [],
+                    financeiro: results[5].data || []
+                };
+                
+                log(`✅ Dados carregados: ${db.alunos.length} alunos, ${db.agenda.length} aulas`, 'success');
+                updateUI();
+                showSyncStatus('Sincronizado', 'ok');
+            } catch (error) {
+                log('❌ Erro: ' + error.message, 'error');
+                showSyncStatus('Erro - modo local', 'error');
+                useSupabase = false;
+                db = getLocalDB();
+                updateUI();
+            } finally {
+                showLoading(false);
+            }
+        }
 
-// Atualizar Dashboard
-function updateDashboard() {
-    // Stats
-    const elAlunos = document.getElementById('stat-alunos');
-    if (elAlunos) elAlunos.textContent = db.alunos.length;
-    
-    const elTurmas = document.getElementById('stat-turmas');
-    if (elTurmas) elTurmas.textContent = db.turmas.length;
-    
-    const elCefr = document.getElementById('stat-cefr');
-    if (elCefr) elCefr.textContent = db.cefr.length;
+        // === ATUALIZAR UI ===
+        function updateUI() {
+            // Stats
+            document.getElementById('stat-alunos').textContent = db.alunos.length;
+            document.getElementById('stat-turmas').textContent = db.turmas.length;
+            document.getElementById('stat-cefr').textContent = db.cefr.length;
+            document.getElementById('stat-agendadas').textContent = db.agenda.filter(a => a.status === 'agendada').length;
+            document.getElementById('stat-concluidas').textContent = db.agenda.filter(a => a.status === 'concluida').length;
+            document.getElementById('stat-andamento').textContent = db.agenda.filter(a => a.status === 'andamento').length;
 
-    const agendadas = db.agenda.filter(a => a.status === 'agendada').length;
-    const concluidas = db.agenda.filter(a => a.status === 'concluida').length;
-    const andamento = db.agenda.filter(a => a.status === 'andamento').length;
-    
-    const elAgendadas = document.getElementById('stat-agendadas');
-    if (elAgendadas) elAgendadas.textContent = agendadas;
-    
-    const elConcluidas = document.getElementById('stat-concluidas');
-    if (elConcluidas) elConcluidas.textContent = concluidas;
-    
-    const elAndamento = document.getElementById('stat-andamento');
-    if (elAndamento) elAndamento.textContent = andamento;
+            // Financial
+            let entradas = 0, saidas = 0;
+            db.financeiro.forEach(t => {
+                const v = parseFloat(t.valor) || 0;
+                if (t.tipo === 'entrada') entradas += v;
+                else if (t.tipo === 'saida') saidas += v;
+            });
+            document.getElementById('fin-entradas').textContent = formatCurrency(entradas);
+            document.getElementById('fin-saidas').textContent = formatCurrency(saidas);
+            document.getElementById('fin-saldo').textContent = formatCurrency(entradas - saidas);
 
-    // Financial
-    let entradas = 0, saidas = 0;
-    db.financeiro.forEach(t => {
-        if (t.tipo === 'entrada') entradas += parseFloat(t.valor || 0);
-        else if (t.tipo === 'saida') saidas += parseFloat(t.valor || 0);
-    });
-    
-    const elEntradas = document.getElementById('fin-entradas');
-    if (elEntradas) elEntradas.textContent = formatCurrency(entradas);
-    
-    const elSaidas = document.getElementById('fin-saidas');
-    if (elSaidas) elSaidas.textContent = formatCurrency(saidas);
-    
-    const elSaldo = document.getElementById('fin-saldo');
-    if (elSaldo) elSaldo.textContent = formatCurrency(entradas - saidas);
+            // CEFR Chart
+            updateCefrChart();
+            // Finance Chart
+            updateFinanceChart(entradas, saidas);
+            // Recent Students
+            updateRecentStudents();
+            // Upcoming Classes
+            updateUpcomingClasses();
+            
+            if (window.lucide) lucide.createIcons();
+        }
 
-    // CEFR Distribution
-    const cefrCounts = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 };
-    db.alunos.forEach(a => { 
-        if (cefrCounts[a.nivel] !== undefined) cefrCounts[a.nivel]++; 
-    });
-    
-    const total = Object.values(cefrCounts).reduce((s, v) => s + v, 0) || 1;
-    ['a1','a2','b1','b2','c1','c2'].forEach(level => {
-        const key = level.toUpperCase();
-        const count = cefrCounts[key];
-        const el = document.getElementById('cefr-' + level);
-        if (el) el.textContent = count;
-        const bar = el?.parentElement?.querySelector('.progress-fill');
-        if (bar) bar.style.width = ((count / total) * 100) + '%';
-    });
+        function formatCurrency(v) {
+            return parseFloat(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
 
-    // Recent Students
-    const recentEl = document.getElementById('recent-students');
-    if (recentEl) {
-        const recent = db.alunos.slice(0, 3);
-        if (recent.length > 0) {
-            recentEl.innerHTML = recent.map(a => `
-                <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition">
-                    <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 text-xs font-bold">
-                        ${a.nome.charAt(0).toUpperCase()}
+        // === CHARTS ===
+        function updateCefrChart() {
+            const counts = { A1:0, A2:0, B1:0, B2:0, C1:0, C2:0 };
+            db.alunos.forEach(a => { if (counts[a.nivel] !== undefined) counts[a.nivel]++; });
+            const labels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+            const colors = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#10b981'];
+            const data = labels.map(l => counts[l]);
+            
+            const ctx = document.getElementById('cefrChart');
+            if (!ctx) return;
+            
+            if (charts.cefr) charts.cefr.destroy();
+            charts.cefr = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{ data: data, backgroundColor: colors, borderWidth: 0 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        function updateFinanceChart(entradas, saidas) {
+            const ctx = document.getElementById('financeChart');
+            if (!ctx) return;
+            if (charts.finance) charts.finance.destroy();
+            
+            charts.finance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Entradas', 'Saídas'],
+                    datasets: [{
+                        label: 'Valor',
+                        data: [entradas, saidas],
+                        backgroundColor: ['#10b981', '#ef4444'],
+                        borderRadius: 8, borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function updateRecentStudents() {
+            const el = document.getElementById('recent-students');
+            if (!el) return;
+            const recent = db.alunos.slice(0, 5);
+            if (recent.length === 0) {
+                el.innerHTML = '<p class="text-center py-8 text-gray-400 text-sm">Nenhum aluno cadastrado</p>';
+                return;
+            }
+            el.innerHTML = recent.map(a => `
+                <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm">
+                        ${a.nome?.charAt(0)?.toUpperCase() || '?'}
                     </div>
-                    <div class="text-left flex-1 min-w-0">
-                        <p class="text-sm font-medium text-gray-900 truncate">${a.nome}</p>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-medium text-sm truncate">${a.nome || 'Sem nome'}</p>
                         <p class="text-xs text-gray-500">${a.nivel || 'N/A'}</p>
                     </div>
+                    <a href="alunos.html" class="text-xs text-primary hover:underline">Ver</a>
                 </div>
             `).join('');
-        } else {
-            recentEl.innerHTML = '<p class="text-center py-6 text-gray-400 text-xs">Nenhum aluno cadastrado</p>';
         }
-    }
 
-    // Upcoming Classes
-    const upcomingEl = document.getElementById('upcoming-classes');
-    if (upcomingEl) {
-        const today = new Date().toISOString().split('T')[0];
-        const upcoming = db.agenda
-            .filter(a => a.data >= today && a.status === 'agendada')
-            .sort((a,b) => a.data.localeCompare(b.data))
-            .slice(0, 3);
+        function updateUpcomingClasses() {
+            const el = document.getElementById('upcoming-classes');
+            if (!el) return;
+            const today = new Date().toISOString().split('T')[0];
+            const upcoming = db.agenda.filter(a => a.data >= today && a.status === 'agendada').sort((a,b) => a.data.localeCompare(b.data)).slice(0, 5);
             
-        if (upcoming.length > 0) {
-            upcomingEl.innerHTML = upcoming.map(a => `
-                <div class="p-3 rounded-lg border border-gray-100 bg-gray-50 hover:bg-gray-100 transition">
-                    <p class="text-sm font-medium text-gray-900">${a.titulo || 'Aula'}</p>
-                    <p class="text-xs text-gray-500">${new Date(a.data + 'T12:00:00').toLocaleDateString('pt-BR')} • ${a.horario || ''}</p>
+            if (upcoming.length === 0) {
+                el.innerHTML = '<p class="text-center py-8 text-gray-400 text-sm">Nenhuma aula agendada</p>';
+                return;
+            }
+            el.innerHTML = upcoming.map(a => `
+                <div class="p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700">
+                    <p class="font-medium text-sm">${a.titulo || 'Aula'}</p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        ${new Date(a.data + 'T12:00:00').toLocaleDateString('pt-BR')} • ${a.horario || 'Sem horário'}
+                    </p>
                 </div>
             `).join('');
-        } else {
-            upcomingEl.innerHTML = '<p class="text-center py-6 text-gray-400 text-xs">Nenhuma aula agendada</p>';
         }
-    }
 
-    if (window.lucide) lucide.createIcons();
-}
+        // === REALTIME ===
+        function setupRealtime() {
+            if (!useSupabase || !supabase) return;
+            const tables = ['caderno_alunos', 'caderno_turmas', 'caderno_cefr', 'caderno_agenda', 'caderno_financeiro'];
+            tables.forEach(table => {
+                supabase.channel(`rt_${table}`)
+                    .on('postgres_changes', { event: '*', schema: 'public', table }, () => {
+                        log(`🔄 Mudança em ${table} - atualizando`, 'info');
+                        loadData();
+                    })
+                    .subscribe();
+            });
+            log('✅ Realtime ativo', 'success');
+        }
 
-// Setup Realtime Subscriptions
-function setupRealtime() {
-    const channels = [
-        supabase.channel('caderno_alunos').on('postgres_changes', { event: '*', schema: 'public', table: 'caderno_alunos' }, loadData),
-        supabase.channel('caderno_turmas').on('postgres_changes', { event: '*', schema: 'public', table: 'caderno_turmas' }, loadData),
-        supabase.channel('caderno_cefr').on('postgres_changes', { event: '*', schema: 'public', table: 'caderno_cefr' }, loadData),
-        supabase.channel('caderno_agenda').on('postgres_changes', { event: '*', schema: 'public', table: 'caderno_agenda' }, loadData),
-        supabase.channel('caderno_financeiro').on('postgres_changes', { event: '*', schema: 'public', table: 'caderno_financeiro' }, loadData)
-    ];
+        // === SYNC MANUAL ===
+        async function syncData() {
+            const icon = document.getElementById('syncIcon');
+            icon.classList.add('animate-spin');
+            await loadData();
+            setTimeout(() => icon.classList.remove('animate-spin'), 500);
+        }
 
-    channels.forEach(ch => ch.subscribe());
-    console.log('✅ Realtime subscriptions ativas - tabelas: caderno_*');
-}
+        // === TEMA ===
+        const html = document.documentElement;
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.classList.add('dark');
+        }
+        document.getElementById('themeToggle')?.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        });
+        document.getElementById('current-year').textContent = new Date().getFullYear();
 
-// Inicialização
-document.addEventListener('DOMContentLoaded', () => {
-    loadData();
-    setupRealtime();
-    if (window.lucide) lucide.createIcons();
-});
+        // === INIT ===
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🚀 Iniciando dashboard...', 'info');
+            initSupabase();
+            loadData();
+            setupRealtime();
+            if (window.lucide) lucide.createIcons();
+            log(`📊 Modo: ${useSupabase ? '☁️ Supabase' : '🗄️ LocalStorage'}`, 'success');
+        });
 
-// Expor funções globalmente
-window.supabaseClient = supabase;
-window.syncData = syncData;
-window.loadData = loadData;
-window.db = db;
+        // Expor globalmente
+        window.supabaseClient = supabase;
+        window.syncData = syncData;
+        window.loadData = loadData;
+        window.log = log;
     </script>
 </body>
 </html>
