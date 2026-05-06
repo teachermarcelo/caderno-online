@@ -1,38 +1,48 @@
-// app.js - Sistema Central Caderno Online
+// app.js - Sistema Central Robusto (v2.0)
 const DB_KEY = 'cadernoOnlineDB';
 
-// 1. Inicialização do Banco de Dados
+// 1. Inicialização e Migração do Banco de Dados
 function getDB() {
     const data = localStorage.getItem(DB_KEY);
     if (!data) {
-        // Estrutura inicial correta (Financeiro agora é uma lista de transações)
+        // Cria estrutura nova limpa
         const initial = {
             alunos: [],
             turmas: [],
             cefr: [],
             material: [],
             agenda: [],
-            financeiro: [] 
+            financeiro: [] // Agora é uma lista simples de transações
         };
         localStorage.setItem(DB_KEY, JSON.stringify(initial));
         return initial;
     }
-    return JSON.parse(data);
+    
+    // Verificação de migração (caso tenha dados antigos)
+    const db = JSON.parse(data);
+    
+    // Se 'financeiro' for um objeto antigo {entradas:..., saidas:...}, converte para lista
+    if (db.financeiro && typeof db.financeiro === 'object' && !Array.isArray(db.financeiro)) {
+        db.financeiro = db.financeiro.transacoes || [];
+        saveDB(db);
+    }
+    
+    return db;
 }
 
 function saveDB(db) {
     localStorage.setItem(DB_KEY, JSON.stringify(db));
-    // Dispara evento para atualizar outras páginas (ex: Dashboard)
+    // Dispara um sinal para atualizar o dashboard ou outras abas
     window.dispatchEvent(new Event('db-update'));
 }
 
-// 2. Funções CRUD para TODOS os módulos (Global)
-
-// --- ALUNOS ---
+// ==========================================
+// 2. FUNÇÕES GLOBAIS DE CRUD (Alunos)
+// ==========================================
 window.addAluno = function(data) {
     const db = getDB();
     if (db.alunos.some(a => a.nome.toLowerCase() === data.nome.toLowerCase())) {
-        alert('⚠️ Já existe um aluno com este nome!');
+        alert('⚠️ Erro: Já existe um aluno com este nome!');
         return false;
     }
     data.id = Date.now().toString();
@@ -41,15 +51,28 @@ window.addAluno = function(data) {
     return true;
 };
 
+window.updateAluno = function(id, newData) {
+    const db = getDB();
+    const index = db.alunos.findIndex(a => a.id === id);
+    if (index !== -1) {
+        db.alunos[index] = { ...db.alunos[index], ...newData };
+        saveDB(db);
+        return true;
+    }
+    return false;
+};
+
 window.deleteAluno = function(id) {
-    if (!confirm('Excluir aluno?')) return;
+    if (!confirm('Tem certeza que deseja excluir este aluno?')) return;
     const db = getDB();
     db.alunos = db.alunos.filter(a => a.id !== id);
     saveDB(db);
-    location.reload(); // Recarrega para atualizar lista
+    location.reload();
 };
 
-// --- TURMAS ---
+// ==========================================
+// 3. FUNÇÕES GLOBAIS DE CRUD (Turmas)
+// ==========================================
 window.addTurma = function(data) {
     const db = getDB();
     data.id = Date.now().toString();
@@ -66,11 +89,13 @@ window.deleteTurma = function(id) {
     location.reload();
 };
 
-// --- AGENDA ---
+// ==========================================
+// 4. FUNÇÕES GLOBAIS DE CRUD (Agenda)
+// ==========================================
 window.addAgenda = function(data) {
     const db = getDB();
     data.id = Date.now().toString();
-    data.status = data.status || 'agendada';
+    data.status = data.status || 'agendada'; // Padrão
     db.agenda.push(data);
     saveDB(db);
     return true;
@@ -84,17 +109,9 @@ window.deleteAgenda = function(id) {
     location.reload();
 };
 
-window.updateAgendaStatus = function(id, newStatus) {
-    const db = getDB();
-    const index = db.agenda.findIndex(a => a.id === id);
-    if (index !== -1) {
-        db.agenda[index].status = newStatus;
-        saveDB(db);
-        location.reload();
-    }
-};
-
-// --- FINANCEIRO ---
+// ==========================================
+// 5. FUNÇÕES GLOBAIS DE CRUD (Financeiro)
+// ==========================================
 window.addFinanceiro = function(data) {
     const db = getDB();
     data.id = Date.now().toString();
@@ -112,7 +129,9 @@ window.deleteFinanceiro = function(id) {
     location.reload();
 };
 
-// --- MATERIAL ---
+// ==========================================
+// 6. FUNÇÕES GLOBAIS DE CRUD (Material)
+// ==========================================
 window.addMaterial = function(data) {
     const db = getDB();
     data.id = Date.now().toString();
@@ -129,7 +148,9 @@ window.deleteMaterial = function(id) {
     location.reload();
 };
 
-// --- CEFR ---
+// ==========================================
+// 7. FUNÇÕES GLOBAIS DE CRUD (CEFR)
+// ==========================================
 window.addCefr = function(data) {
     const db = getDB();
     data.id = Date.now().toString();
@@ -146,38 +167,52 @@ window.deleteCefr = function(id) {
     location.reload();
 };
 
-// 3. Atualização do Dashboard (Index.html)
+// ==========================================
+// 8. LÓGICA DO DASHBOARD (Index)
+// ==========================================
 function updateDashboard() {
+    // Só roda se estiver na página principal (index)
+    if (!document.getElementById('dash-alunos') && !document.getElementById('stat-alunos')) return;
+
     const db = getDB();
 
-    // Contadores Simples
-    if (document.getElementById('dash-alunos')) document.getElementById('dash-alunos').textContent = db.alunos.length;
-    if (document.getElementById('dash-turmas')) document.getElementById('dash-turmas').textContent = db.turmas.length;
-    if (document.getElementById('dash-cefr')) document.getElementById('dash-cefr').textContent = db.cefr.length;
-    
-    // Agenda Contagem
-    if (document.getElementById('dash-agenda')) {
-        const agendadas = db.agenda.filter(a => a.status === 'agendada').length;
-        document.getElementById('dash-agenda').textContent = agendadas;
-    }
+    // Atualiza Contadores Simples
+    const elAlunos = document.getElementById('dash-alunos') || document.getElementById('stat-alunos');
+    if (elAlunos) elAlunos.textContent = db.alunos.length;
 
-    // Financeiro Cálculo Real
+    const elTurmas = document.getElementById('dash-turmas') || document.getElementById('stat-turmas');
+    if (elTurmas) elTurmas.textContent = db.turmas.length;
+
+    const elCefr = document.getElementById('dash-cefr') || document.getElementById('stat-cefr');
+    if (elCefr) elCefr.textContent = db.cefr.length;
+
+    // Agenda (Só Agendadas)
+    const elAgenda = document.getElementById('dash-agenda') || document.getElementById('stat-agendadas');
+    if (elAgenda) elAgenda.textContent = db.agenda.filter(a => a.status === 'agendada').length;
+
+    // Financeiro (Cálculo Dinâmico)
     let totalEntradas = 0;
     let totalSaidas = 0;
-    
-    db.financeiro.forEach(trans => {
-        const val = parseFloat(trans.valor) || 0;
-        if (trans.tipo === 'entrada') totalEntradas += val;
-        else if (trans.tipo === 'saida') totalSaidas += val;
+
+    // Garante que financeiro é lista
+    const financList = Array.isArray(db.financeiro) ? db.financeiro : [];
+
+    financList.forEach(t => {
+        const val = parseFloat(t.valor) || 0;
+        if (t.tipo === 'entrada') totalEntradas += val;
+        else totalSaidas += val;
     });
 
-    const saldo = totalEntradas - totalSaidas;
+    const elEntradas = document.getElementById('dash-entradas') || document.getElementById('fin-entradas');
+    if (elEntradas) elEntradas.textContent = `R$ ${totalEntradas.toFixed(2)}`;
 
-    if (document.getElementById('dash-entradas')) document.getElementById('dash-entradas').textContent = `R$ ${totalEntradas.toFixed(2)}`;
-    if (document.getElementById('dash-saidas')) document.getElementById('dash-saidas').textContent = `R$ ${totalSaidas.toFixed(2)}`;
-    if (document.getElementById('dash-saldo')) document.getElementById('dash-saldo').textContent = `R$ ${saldo.toFixed(2)}`;
+    const elSaidas = document.getElementById('dash-saidas') || document.getElementById('fin-saidas');
+    if (elSaidas) elSaidas.textContent = `R$ ${totalSaidas.toFixed(2)}`;
+
+    const elSaldo = document.getElementById('dash-saldo') || document.getElementById('fin-saldo');
+    if (elSaldo) elSaldo.textContent = `R$ ${(totalEntradas - totalSaidas).toFixed(2)}`;
 }
 
-// Inicializa ao carregar
+// Inicialização
 document.addEventListener('DOMContentLoaded', updateDashboard);
 window.addEventListener('db-update', updateDashboard);
