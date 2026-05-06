@@ -4,15 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Caderno Online</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238b5cf6'><path d='M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25'/></svg>">
+    <link rel="icon" href="image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238b5cf6'><path d='M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25'/></svg>">
     
     <!-- CDNs -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Tailwind Config -->
+    <!-- Configuração Tailwind -->
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -20,9 +19,8 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        primary: '#8b5cf6',
-                        secondary: '#ec4899',
-                        surface: '#f3f4f6',
+                        primary: '#8b5cf6', // Roxo padrão
+                        secondary: '#ec4899'
                     }
                 }
             }
@@ -30,488 +28,411 @@
     </script>
     
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        /* Ajuste fino para as abas */
-        .tab-btn { transition: all 0.2s ease; }
-        .tab-btn.active { 
-            background-color: white; 
-            color: #111827; 
-            font-weight: 600; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        
+        /* Estilo dos Cards de Estatística */
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid #f1f5f9;
+            transition: transform 0.2s;
         }
-        .tab-btn:not(.active) {
-            color: #6b7280;
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+        
+        /* Ícones com Gradiente */
+        .icon-box {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; flex-shrink: 0;
         }
-        .tab-btn:not(.active):hover {
-            background-color: rgba(0,0,0,0.05);
-            color: #374151;
-        }
+        
+        /* Barra de Progresso CEFR */
+        .progress-bg { background-color: #f1f5f9; border-radius: 999px; height: 8px; overflow: hidden; width: 100%; }
+        .progress-fill { height: 100%; border-radius: 999px; transition: width 1s ease; }
+        
+        /* Navegação Ativa */
+        .nav-link.active { background-color: white; color: #1e293b; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800 antialiased">
+<body class="text-gray-800 antialiased">
 
-    <!-- HEADER -->
-    <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <!-- Logo -->
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center shadow-sm">
-                        <i data-lucide="book-open" class="w-6 h-6 text-white"></i>
-                    </div>
-                    <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
-                        Caderno Online
-                    </h1>
+    <!-- 1. HEADER -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-md">
+                    <i data-lucide="book-open" class="w-6 h-6 text-white"></i>
                 </div>
-
-                <!-- Botão Tema e Sync -->
-                <div class="flex items-center gap-2">
-                    <button onclick="syncData()" class="p-2 rounded-lg hover:bg-gray-100 transition" title="Atualizar Dados">
-                        <i data-lucide="refresh-cw" class="w-5 h-5 text-gray-500" id="syncIcon"></i>
-                    </button>
-                    <button id="themeToggle" class="p-2 rounded-lg hover:bg-gray-100 transition" title="Alternar Tema">
-                        <i data-lucide="moon" class="w-5 h-5 text-gray-600 hidden dark:block"></i>
-                        <i data-lucide="sun" class="w-5 h-5 text-gray-600 block dark:hidden"></i>
-                    </button>
-                </div>
+                <h1 class="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                    Caderno Online
+                </h1>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <button onclick="syncData()" class="p-2 rounded-lg hover:bg-gray-100 transition" title="Sincronizar Dados">
+                    <i data-lucide="refresh-cw" class="w-5 h-5 text-gray-600"></i>
+                </button>
+                <!-- Botão Tema (Opcional) -->
+                <button id="themeToggle" class="p-2 rounded-lg hover:bg-gray-100 transition">
+                    <i data-lucide="sun" class="w-5 h-5 text-gray-600"></i>
+                </button>
             </div>
         </div>
     </header>
 
-    <!-- NAVEGAÇÃO -->
-    <div class="bg-gray-50 py-4 sticky top-16 z-40 border-b border-gray-200/50">
+    <!-- 2. NAVEGAÇÃO -->
+    <nav class="bg-gray-50 border-b border-gray-200 py-3 sticky top-16 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="bg-white rounded-xl p-1.5 inline-flex gap-1 shadow-sm border border-gray-100 w-full md:w-auto">
-                <a href="index.html" class="tab-btn active flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm">
-                    <i data-lucide="layout-grid" class="w-4 h-4"></i> Home
+            <!-- Scroll horizontal no mobile -->
+            <div class="flex space-x-1 overflow-x-auto pb-2 md:pb-0">
+                <a href="index.html" class="nav-link active flex items-center gap-2 px-4 py-2 rounded-lg text-sm whitespace-nowrap">
+                    <i data-lucide="layout-grid" class="w-4 h-4"></i> Dashboard
                 </a>
-                <a href="alunos.html" class="tab-btn flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm">
+                <a href="alunos.html" class="nav-link flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 whitespace-nowrap">
                     <i data-lucide="users" class="w-4 h-4"></i> Alunos
                 </a>
-                <a href="turmas.html" class="tab-btn flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm">
+                <a href="turmas.html" class="nav-link flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 whitespace-nowrap">
                     <i data-lucide="graduation-cap" class="w-4 h-4"></i> Turmas
                 </a>
-                <a href="cefr.html" class="tab-btn flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm">
+                <a href="cefr.html" class="nav-link flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 whitespace-nowrap">
                     <i data-lucide="book-marked" class="w-4 h-4"></i> CEFR
                 </a>
-                <a href="agenda.html" class="tab-btn flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm">
+                <a href="material.html" class="nav-link flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 whitespace-nowrap">
+                    <i data-lucide="link-2" class="w-4 h-4"></i> Material
+                </a>
+                <a href="agenda.html" class="nav-link flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 whitespace-nowrap">
                     <i data-lucide="calendar" class="w-4 h-4"></i> Agenda
                 </a>
-                <a href="financeiro.html" class="tab-btn flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm">
+                <a href="financeiro.html" class="nav-link flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 whitespace-nowrap">
                     <i data-lucide="wallet" class="w-4 h-4"></i> Pagamentos
                 </a>
             </div>
         </div>
-    </div>
+    </nav>
 
-    <!-- CONTEÚDO PRINCIPAL -->
+    <!-- 3. CONTEÚDO PRINCIPAL -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        <!-- GRID DE ESTATÍSTICAS -->
-        <!-- Layout: 2 colunas no celular, 3 no desktop -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            
-            <!-- Card: Alunos -->
-            <div class="bg-white border border-gray-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-                <div class="flex items-start justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 mb-1">Alunos</p>
-                        <h3 class="text-3xl font-bold text-gray-900 tracking-tight" id="stat-alunos">-</h3>
-                    </div>
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-200">
-                        <i data-lucide="users" class="w-6 h-6 text-white"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card: Turmas -->
-            <div class="bg-white border border-gray-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-                <div class="flex items-start justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 mb-1">Turmas</p>
-                        <h3 class="text-3xl font-bold text-gray-900 tracking-tight" id="stat-turmas">-</h3>
-                    </div>
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-200">
-                        <i data-lucide="graduation-cap" class="w-6 h-6 text-white"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card: Aulas CEFR -->
-            <div class="bg-white border border-gray-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-                <div class="flex items-start justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 mb-1">Aulas CEFR</p>
-                        <h3 class="text-3xl font-bold text-gray-900 tracking-tight" id="stat-cefr">-</h3>
-                    </div>
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-200">
-                        <i data-lucide="book-open" class="w-6 h-6 text-white"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card: Aulas Agendadas -->
-            <div class="bg-white border border-gray-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-                <div class="flex items-start justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 mb-1">Aulas Agendadas</p>
-                        <h3 class="text-3xl font-bold text-gray-900 tracking-tight" id="stat-agendadas">-</h3>
-                    </div>
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-200">
-                        <i data-lucide="calendar-check" class="w-6 h-6 text-white"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card: Concluídas -->
-            <div class="bg-white border border-gray-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-                <div class="flex items-start justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 mb-1">Concluídas</p>
-                        <h3 class="text-3xl font-bold text-green-600 tracking-tight" id="stat-concluidas">-</h3>
-                    </div>
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg shadow-green-200">
-                        <i data-lucide="check-circle" class="w-6 h-6 text-white"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card: Em Andamento -->
-            <div class="bg-white border border-gray-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-                <div class="flex items-start justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 mb-1">Em Andamento</p>
-                        <h3 class="text-3xl font-bold text-orange-600 tracking-tight" id="stat-andamento">-</h3>
-                    </div>
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-200">
-                        <i data-lucide="clock" class="w-6 h-6 text-white"></i>
-                    </div>
-                </div>
-            </div>
-
+        <!-- Título -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-900">Visão Geral</h2>
+            <p class="text-gray-500 text-sm mt-1">Acompanhe o progresso e métricas principais.</p>
         </div>
 
-        <!-- SEÇÃO INFERIOR: RESUMO FINANCEIRO E CEFR -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- Resumo Financeiro (Ocupa 2 colunas) -->
-            <div class="lg:col-span-2 bg-white border border-gray-100 rounded-xl p-6 shadow-sm">
-                <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                    <i data-lucide="pie-chart" class="w-5 h-5 text-purple-600"></i>
-                    Resumo Financeiro
-                </h3>
-                
-                <div class="grid grid-cols-3 gap-4">
-                    <!-- Entradas -->
-                    <div class="bg-green-50 rounded-xl p-4 border border-green-100">
-                        <p class="text-xs font-semibold text-green-700 uppercase tracking-wide">Entradas</p>
-                        <p class="text-xl font-bold text-green-700 mt-1" id="fin-entradas">R$ 0,00</p>
-                    </div>
-                    
-                    <!-- Saídas -->
-                    <div class="bg-red-50 rounded-xl p-4 border border-red-100">
-                        <p class="text-xs font-semibold text-red-700 uppercase tracking-wide">Saídas</p>
-                        <p class="text-xl font-bold text-red-700 mt-1" id="fin-saidas">R$ 0,00</p>
-                    </div>
-                    
-                    <!-- Saldo -->
-                    <div class="bg-purple-50 rounded-xl p-4 border border-purple-100">
-                        <p class="text-xs font-semibold text-purple-700 uppercase tracking-wide">Saldo</p>
-                        <p class="text-xl font-bold text-purple-700 mt-1" id="fin-saldo">R$ 0,00</p>
-                    </div>
+        <!-- LINHA 1: Estatísticas (6 Cards) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+            <!-- Alunos -->
+            <div class="stat-card flex items-center gap-3">
+                <div class="icon-box bg-gradient-to-br from-purple-400 to-purple-600">
+                    <i data-lucide="users" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase">Alunos</p>
+                    <p class="text-2xl font-bold text-gray-900" id="stat-alunos">0</p>
                 </div>
             </div>
 
-            <!-- Distribuição CEFR (Ocupa 1 coluna) -->
-            <div class="bg-white border border-gray-100 rounded-xl p-6 shadow-sm">
+            <!-- Turmas -->
+            <div class="stat-card flex items-center gap-3">
+                <div class="icon-box bg-gradient-to-br from-blue-400 to-blue-600">
+                    <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase">Turmas</p>
+                    <p class="text-2xl font-bold text-gray-900" id="stat-turmas">0</p>
+                </div>
+            </div>
+
+            <!-- Aulas CEFR -->
+            <div class="stat-card flex items-center gap-3">
+                <div class="icon-box bg-gradient-to-br from-emerald-400 to-emerald-600">
+                    <i data-lucide="book-open" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase">Aulas CEFR</p>
+                    <p class="text-2xl font-bold text-gray-900" id="stat-cefr">0</p>
+                </div>
+            </div>
+
+            <!-- Agendadas -->
+            <div class="stat-card flex items-center gap-3">
+                <div class="icon-box bg-gradient-to-br from-orange-400 to-orange-600">
+                    <i data-lucide="calendar-check" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase">Agendadas</p>
+                    <p class="text-2xl font-bold text-gray-900" id="stat-agendadas">0</p>
+                </div>
+            </div>
+
+            <!-- Concluídas -->
+            <div class="stat-card flex items-center gap-3">
+                <div class="icon-box bg-gradient-to-br from-green-400 to-green-600">
+                    <i data-lucide="check-circle" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase">Concluídas</p>
+                    <p class="text-2xl font-bold text-green-600" id="stat-concluidas">0</p>
+                </div>
+            </div>
+
+            <!-- Em Andamento -->
+            <div class="stat-card flex items-center gap-3">
+                <div class="icon-box bg-gradient-to-br from-amber-400 to-amber-600">
+                    <i data-lucide="clock" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase">Andamento</p>
+                    <p class="text-2xl font-bold text-amber-600" id="stat-andamento">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- LINHA 2: Resumo Financeiro (3 Cards Maiores) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Entradas -->
+            <div class="stat-card bg-green-50 border-green-100">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-bold text-green-800 uppercase">Total Entradas</h3>
+                    <div class="p-2 bg-green-200 rounded-lg text-green-700">
+                        <i data-lucide="arrow-down-left" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <p class="text-3xl font-bold text-green-700" id="fin-entradas">R$ 0,00</p>
+            </div>
+
+            <!-- Saídas -->
+            <div class="stat-card bg-red-50 border-red-100">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-bold text-red-800 uppercase">Total Saídas</h3>
+                    <div class="p-2 bg-red-200 rounded-lg text-red-700">
+                        <i data-lucide="arrow-up-right" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <p class="text-3xl font-bold text-red-700" id="fin-saidas">R$ 0,00</p>
+            </div>
+
+            <!-- Saldo -->
+            <div class="stat-card bg-purple-50 border-purple-100">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-bold text-purple-800 uppercase">Saldo Atual</h3>
+                    <div class="p-2 bg-purple-200 rounded-lg text-purple-700">
+                        <i data-lucide="wallet" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <p class="text-3xl font-bold text-purple-700" id="fin-saldo">R$ 0,00</p>
+            </div>
+        </div>
+
+        <!-- LINHA 3: Gráficos e Listas -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Distribuição CEFR (Ocupa 1/3) -->
+            <div class="stat-card col-span-1">
                 <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
                     <i data-lucide="bar-chart-2" class="w-5 h-5 text-purple-600"></i>
-                    Distribuição CEFR
+                    Nível dos Alunos
                 </h3>
-                
-                <div class="space-y-4" id="cefr-bars">
+                <div class="space-y-5">
                     <!-- A1 -->
                     <div class="flex items-center gap-3">
-                        <span class="text-xs font-bold text-gray-600 w-6">A1</span>
-                        <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div class="h-full bg-red-400 rounded-full transition-all duration-500" style="width: 0%" id="bar-a1"></div>
-                        </div>
-                        <span class="text-xs font-bold text-gray-900 w-6 text-right" id="cefr-a1">0</span>
+                        <span class="text-xs font-bold text-gray-500 w-6">A1</span>
+                        <div class="progress-bg flex-1"><div class="progress-fill bg-red-400" id="bar-a1" style="width: 0%"></div></div>
+                        <span class="text-xs font-bold text-gray-700 w-4 text-right" id="cefr-a1">0</span>
                     </div>
-                    
                     <!-- A2 -->
                     <div class="flex items-center gap-3">
-                        <span class="text-xs font-bold text-gray-600 w-6">A2</span>
-                        <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div class="h-full bg-orange-400 rounded-full transition-all duration-500" style="width: 0%" id="bar-a2"></div>
-                        </div>
-                        <span class="text-xs font-bold text-gray-900 w-6 text-right" id="cefr-a2">0</span>
+                        <span class="text-xs font-bold text-gray-500 w-6">A2</span>
+                        <div class="progress-bg flex-1"><div class="progress-fill bg-orange-400" id="bar-a2" style="width: 0%"></div></div>
+                        <span class="text-xs font-bold text-gray-700 w-4 text-right" id="cefr-a2">0</span>
                     </div>
-                    
                     <!-- B1 -->
                     <div class="flex items-center gap-3">
-                        <span class="text-xs font-bold text-gray-600 w-6">B1</span>
-                        <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div class="h-full bg-yellow-400 rounded-full transition-all duration-500" style="width: 0%" id="bar-b1"></div>
-                        </div>
-                        <span class="text-xs font-bold text-gray-900 w-6 text-right" id="cefr-b1">0</span>
+                        <span class="text-xs font-bold text-gray-500 w-6">B1</span>
+                        <div class="progress-bg flex-1"><div class="progress-fill bg-yellow-400" id="bar-b1" style="width: 0%"></div></div>
+                        <span class="text-xs font-bold text-gray-700 w-4 text-right" id="cefr-b1">0</span>
                     </div>
-                    
                     <!-- B2 -->
                     <div class="flex items-center gap-3">
-                        <span class="text-xs font-bold text-gray-600 w-6">B2</span>
-                        <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div class="h-full bg-lime-500 rounded-full transition-all duration-500" style="width: 0%" id="bar-b2"></div>
-                        </div>
-                        <span class="text-xs font-bold text-gray-900 w-6 text-right" id="cefr-b2">0</span>
+                        <span class="text-xs font-bold text-gray-500 w-6">B2</span>
+                        <div class="progress-bg flex-1"><div class="progress-fill bg-lime-500" id="bar-b2" style="width: 0%"></div></div>
+                        <span class="text-xs font-bold text-gray-700 w-4 text-right" id="cefr-b2">0</span>
                     </div>
-                    
                     <!-- C1 -->
                     <div class="flex items-center gap-3">
-                        <span class="text-xs font-bold text-gray-600 w-6">C1</span>
-                        <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div class="h-full bg-green-500 rounded-full transition-all duration-500" style="width: 0%" id="bar-c1"></div>
-                        </div>
-                        <span class="text-xs font-bold text-gray-900 w-6 text-right" id="cefr-c1">0</span>
+                        <span class="text-xs font-bold text-gray-500 w-6">C1</span>
+                        <div class="progress-bg flex-1"><div class="progress-fill bg-green-500" id="bar-c1" style="width: 0%"></div></div>
+                        <span class="text-xs font-bold text-gray-700 w-4 text-right" id="cefr-c1">0</span>
                     </div>
-                    
                     <!-- C2 -->
                     <div class="flex items-center gap-3">
-                        <span class="text-xs font-bold text-gray-600 w-6">C2</span>
-                        <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div class="h-full bg-emerald-600 rounded-full transition-all duration-500" style="width: 0%" id="bar-c2"></div>
-                        </div>
-                        <span class="text-xs font-bold text-gray-900 w-6 text-right" id="cefr-c2">0</span>
+                        <span class="text-xs font-bold text-gray-500 w-6">C2</span>
+                        <div class="progress-bg flex-1"><div class="progress-fill bg-emerald-600" id="bar-c2" style="width: 0%"></div></div>
+                        <span class="text-xs font-bold text-gray-700 w-4 text-right" id="cefr-c2">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Listas Recentes (Ocupa 2/3) -->
+            <div class="stat-card col-span-1 lg:col-span-2 flex flex-col gap-6">
+                
+                <!-- Alunos Recentes -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="users" class="w-5 h-5 text-purple-600"></i>
+                        Alunos Recentes
+                    </h3>
+                    <div id="recent-students" class="flex flex-col gap-3">
+                        <!-- Itens injetados via JS -->
+                        <div class="text-center py-8 text-gray-400 text-sm">Nenhum aluno cadastrado</div>
+                    </div>
+                </div>
+
+                <hr class="border-gray-100">
+
+                <!-- Próximas Aulas -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="calendar" class="w-5 h-5 text-purple-600"></i>
+                        Próximas Aulas
+                    </h3>
+                    <div id="upcoming-classes" class="flex flex-col gap-3">
+                        <!-- Itens injetados via JS -->
+                        <div class="text-center py-8 text-gray-400 text-sm">Nenhuma aula agendada</div>
                     </div>
                 </div>
             </div>
 
         </div>
-
     </main>
 
-    <!-- FOOTER -->
-    <footer class="bg-white border-t border-gray-100 py-6 mt-12">
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-6 mt-8">
         <div class="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500">
-            © <span id="year"></span> Caderno Online — Plataforma de Ensino de Idiomas
+            © 2026 Caderno Online — Plataforma de Ensino de Idiomas
         </div>
     </footer>
 
-    <!-- SCRIPT -->
+    <!-- LÓGICA DO DASHBOARD -->
+    <script src="app.js"></script>
     <script>
-        // === CONFIGURAÇÃO SUPABASE ===
-        const SUPABASE_URL = 'https://rvgcniaowzmsudzliozf.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_N_xCS0lbbTvG7qWTpAw0ag_vlg1lbHb';
-        const DB_KEY = 'cadernoOnlineDB'; // Chave para LocalStorage (fallback)
-        
-        let supabase = null;
-        let useSupabase = true;
-        
-        // Objeto global para armazenar dados
-        window.db = {
-            alunos: [],
-            turmas: [],
-            cefr: [],
-            material: [],
-            agenda: [],
-            financeiro: []
-        };
+        // TEMA (Dark/Light Mode simples)
+        const html = document.documentElement;
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            html.classList.toggle('dark');
+        });
 
-        // === INICIALIZAÇÃO ===
-        function init() {
-            // Atualizar ano no rodapé
-            document.getElementById('year').textContent = new Date().getFullYear();
-            
-            // Configurar Tema
-            if (localStorage.getItem('theme') === 'dark' || 
-               (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-
-            // Inicializar Supabase
-            try {
-                // Verifica se a biblioteca do Supabase carregou
-                if (typeof window.supabase !== 'undefined') {
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    console.log("✅ Supabase inicializado com sucesso.");
-                } else {
-                    throw new Error("Biblioteca Supabase não carregada.");
-                }
-            } catch (error) {
-                console.warn("⚠️ Falha ao inicializar Supabase. Usando modo LocalStorage.", error);
-                useSupabase = false;
-            }
-            
-            // Carregar dados iniciais
-            loadData();
-            
-            // Configurar escuta de mudanças em tempo real
-            setupRealtime();
-        }
-
-        // === CARREGAR DADOS ===
-        async function loadData() {
-            try {
-                // Mostrar estado de carregamento
-                document.getElementById('syncIcon').classList.add('animate-spin');
-                
-                if (!useSupabase) {
-                    // Carregar do LocalStorage
-                    const localData = localStorage.getItem(DB_KEY);
-                    if (localData) {
-                        window.db = JSON.parse(localData);
-                    }
-                } else {
-                    // Carregar do Supabase em paralelo
-                    const [
-                        resAlunos, 
-                        resTurmas, 
-                        resCefr, 
-                        resMaterial, 
-                        resAgenda, 
-                        resFinanceiro
-                    ] = await Promise.all([
-                        supabase.from('caderno_alunos').select('*'),
-                        supabase.from('caderno_turmas').select('*'),
-                        supabase.from('caderno_cefr').select('*'),
-                        supabase.from('caderno_material').select('*'),
-                        supabase.from('caderno_agenda').select('*'),
-                        supabase.from('caderno_financeiro').select('*')
-                    ]);
-
-                    // Verificar erros (ex: se as tabelas não existirem ou permissão negada)
-                    if (resAlunos.error || resTurmas.error) {
-                        console.error(" Erro ao buscar dados do Supabase:", resAlunos.error || resTurmas.error);
-                        // Fallback para LocalStorage em caso de erro
-                        useSupabase = false;
-                        const localData = localStorage.getItem(DB_KEY);
-                        if (localData) window.db = JSON.parse(localData);
-                    } else {
-                        // Atualizar objeto global
-                        window.db = {
-                            alunos: resAlunos.data || [],
-                            turmas: resTurmas.data || [],
-                            cefr: resCefr.data || [],
-                            material: resMaterial.data || [],
-                            agenda: resAgenda.data || [],
-                            financeiro: resFinanceiro.data || []
-                        };
-                    }
-                }
-
-                // Renderizar na tela
-                updateDashboard();
-
-            } catch (error) {
-                console.error("❌ Erro crítico ao carregar dados:", error);
-            } finally {
-                // Parar animação de carregamento
-                document.getElementById('syncIcon').classList.remove('animate-spin');
-            }
-        }
-
-        // === ATUALIZAR INTERFACE (DASHBOARD) ===
+        // FUNÇÃO PRINCIPAL DE ATUALIZAÇÃO
         function updateDashboard() {
-            const data = window.db;
+            // Verifica se CadernoDB existe (caso o app.js não tenha carregado)
+            if (!window.CadernoDB) return;
 
-            // 1. Contadores
-            document.getElementById('stat-alunos').textContent = data.alunos.length;
-            document.getElementById('stat-turmas').textContent = data.turmas.length;
-            document.getElementById('stat-cefr').textContent = data.cefr.length;
+            const db = window.CadernoDB.getDB();
 
-            // Contagem de status da agenda
-            const agendadas = data.agenda.filter(a => a.status === 'agendada').length;
-            const concluidas = data.agenda.filter(a => a.status === 'concluida').length;
-            const andamento = data.agenda.filter(a => a.status === 'andamento').length;
+            // 1. Atualizar Contadores de Stats
+            document.getElementById('stat-alunos').textContent = db.alunos.length;
+            document.getElementById('stat-turmas').textContent = db.turmas.length;
+            document.getElementById('stat-cefr').textContent = db.cefr.length;
+            
+            // Agenda Stats
+            const agendadas = db.agenda.filter(a => a.status === 'agendada').length;
+            const concluidas = db.agenda.filter(a => a.status === 'concluida').length;
+            const andamento = db.agenda.filter(a => a.status === 'andamento').length;
 
             document.getElementById('stat-agendadas').textContent = agendadas;
             document.getElementById('stat-concluidas').textContent = concluidas;
             document.getElementById('stat-andamento').textContent = andamento;
 
-            // 2. Financeiro
+            // 2. Atualizar Financeiro (Soma o array de transações)
             let totalEntradas = 0;
             let totalSaidas = 0;
 
-            data.financeiro.forEach(t => {
-                const valor = parseFloat(t.valor) || 0;
-                if (t.tipo === 'entrada') {
-                    totalEntradas += valor;
-                } else if (t.tipo === 'saida') {
-                    totalSaidas += valor;
-                }
+            // Verifica se financeiro é array (novo padrão) ou objeto (antigo)
+            const financArray = Array.isArray(db.financeiro) ? db.financeiro : (db.financeiro.transacoes || []);
+
+            financArray.forEach(t => {
+                const val = parseFloat(t.valor) || 0;
+                if (t.tipo === 'entrada') totalEntradas += val;
+                else totalSaidas += val;
             });
 
-            document.getElementById('fin-entradas').textContent = formatCurrency(totalEntradas);
-            document.getElementById('fin-saidas').textContent = formatCurrency(totalSaidas);
-            document.getElementById('fin-saldo').textContent = formatCurrency(totalEntradas - totalSaidas);
+            document.getElementById('fin-entradas').textContent = window.formatCurrency(totalEntradas);
+            document.getElementById('fin-saidas').textContent = window.formatCurrency(totalSaidas);
+            document.getElementById('fin-saldo').textContent = window.formatCurrency(totalEntradas - totalSaidas);
 
-            // 3. Distribuição CEFR
-            const counts = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 };
+            // 3. Atualizar CEFR Bars
+            const counts = { A1:0, A2:0, B1:0, B2:0, C1:0, C2:0 };
+            db.alunos.forEach(a => { if(counts[a.nivel] !== undefined) counts[a.nivel]++; });
+            const total = Object.values(counts).reduce((a,b)=>a+b,0) || 1;
+
+            ['a1','a2','b1','b2','c1','c2'].forEach(l => {
+                const count = counts[l.toUpperCase()];
+                document.getElementById(`cefr-${l}`).textContent = count;
+                document.getElementById(`bar-${l}`).style.width = `${(count/total)*100}%`;
+            });
+
+            // 4. Listas Recentes
+            // Alunos
+            const studentsContainer = document.getElementById('recent-students');
+            const recentStudents = db.alunos.slice(-3).reverse(); // Pega os 3 últimos
+            if (recentStudents.length > 0) {
+                studentsContainer.innerHTML = recentStudents.map(a => `
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
+                        <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-sm">
+                            ${a.nome.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-900">${a.nome}</p>
+                            <p class="text-xs text-gray-500">${a.nivel} ${a.telefone ? '• '+a.telefone : ''}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                studentsContainer.innerHTML = '<div class="text-center py-4 text-gray-400 text-sm">Nenhum aluno cadastrado</div>';
+            }
+
+            // Aulas
+            const classesContainer = document.getElementById('upcoming-classes');
+            const today = new Date().toISOString().split('T')[0];
+            const upcoming = db.agenda.filter(a => a.data >= today && a.status === 'agendada').slice(0, 3);
             
-            data.alunos.forEach(aluno => {
-                const nivel = aluno.nivel?.toUpperCase();
-                if (counts[nivel] !== undefined) {
-                    counts[nivel]++;
-                }
-            });
+            if (upcoming.length > 0) {
+                classesContainer.innerHTML = upcoming.map(a => `
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition border-l-4 border-purple-500">
+                        <div class="text-center min-w-[50px]">
+                            <p class="text-xs font-bold text-gray-500 uppercase">${new Date(a.data).toLocaleDateString('pt-BR', {month:'short'})}</p>
+                            <p class="text-xl font-bold text-gray-900 leading-none">${new Date(a.data).getDate()}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-900">${a.titulo}</p>
+                            <p class="text-xs text-gray-500">${a.horario || 'Sem horário'} ${a.alunoId ? '• Aluno vinculado' : ''}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                classesContainer.innerHTML = '<div class="text-center py-4 text-gray-400 text-sm">Nenhuma aula agendada</div>';
+            }
 
-            const totalAlunos = Object.values(counts).reduce((a, b) => a + b, 0) || 1;
-
-            ['a1', 'a2', 'b1', 'b2', 'c1', 'c2'].forEach(level => {
-                const key = level.toUpperCase();
-                const count = counts[key];
-                const percentage = (count / totalAlunos) * 100;
-
-                // Atualizar texto
-                document.getElementById(`cefr-${level}`).textContent = count;
-                // Atualizar barra de progresso
-                document.getElementById(`bar-${level}`).style.width = `${percentage}%`;
-            });
+            // Atualiza ícones do Lucide
+            lucide.createIcons();
         }
 
-        // === UTILITÁRIOS ===
-        function formatCurrency(value) {
-            return new Intl.NumberFormat('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-            }).format(value);
-        }
-
-        // === TEMAS ===
-        document.getElementById('themeToggle').addEventListener('click', () => {
-            document.documentElement.classList.toggle('dark');
-            const isDark = document.documentElement.classList.contains('dark');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        });
-
-        // === SINCRONIZAÇÃO MANUAL ===
+        // Sincronização Manual
         function syncData() {
-            loadData();
+            updateDashboard();
+            alert("Dados atualizados com sucesso!");
         }
 
-        // === REALTIME (Atualização automática) ===
-        function setupRealtime() {
-            if (!useSupabase || !supabase) return;
-
-            // Escutar mudanças em todas as tabelas principais
-            const channels = [
-                supabase.channel('realtime_alunos').on('postgres_changes', { event: '*', schema: 'public', table: 'caderno_alunos' }, loadData),
-                supabase.channel('realtime_agenda').on('postgres_changes', { event: '*', schema: 'public', table: 'caderno_agenda' }, loadData),
-                supabase.channel('realtime_financeiro').on('postgres_changes', { event: '*', schema: 'public', table: 'caderno_financeiro' }, loadData)
-            ];
-
-            channels.forEach(ch => ch.subscribe());
-            console.log("✅ Escuta em tempo real ativa.");
-        }
-
-        // Inicializar quando a página carregar
-        document.addEventListener('DOMContentLoaded', init);
-
-        // Atualizar ícones Lucide
-        lucide.createIcons();
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            // Tenta atualizar. Se app.js carregou corretamente, funciona.
+            updateDashboard();
+            
+            // Escuta mudanças vindas de outras abas
+            window.addEventListener('db-updated', updateDashboard);
+        });
     </script>
 </body>
 </html>
-```
