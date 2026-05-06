@@ -1,85 +1,145 @@
-// app.js - Lógica Central e "API Local"
-
+// app.js - Camada de Dados Centralizada
 const DB_KEY = 'cadernoOnlineDB';
 
-// 1. Banco de Dados
-function getDB() {
-    const data = localStorage.getItem(DB_KEY);
-    return data ? JSON.parse(data) : {
-        alunos: [],
-        turmas: [],
-        cefr: [],
-        material: [],
-        agenda: [],
-        financeiro: { entradas: 0, saidas: 0, transacoes: [] }
-    };
+// Inicializa o banco de dados
+function initDB() {
+    const existing = localStorage.getItem(DB_KEY);
+    if (!existing) {
+        const initialDB = {
+            alunos: [],
+            turmas: [],
+            cefr: [],
+            material: [],
+            agenda: [],
+            financeiro: []
+        };
+        localStorage.setItem(DB_KEY, JSON.stringify(initialDB));
+        return initialDB;
+    }
+    return JSON.parse(existing);
 }
 
-function saveDB(db) {
-    localStorage.setItem(DB_KEY, JSON.stringify(db));
-    // Atualiza o dashboard automaticamente se estivermos na home
-    if (window.location.pathname.includes('index.html') || window.location.pathname === '/') {
-        renderDashboard();
+// Obtém dados do localStorage
+function getDB() {
+    try {
+        const data = localStorage.getItem(DB_KEY);
+        return data ? JSON.parse(data) : initDB();
+    } catch (error) {
+        console.error('Erro ao ler banco de dados:', error);
+        return initDB();
     }
 }
 
-// 2. Funções de Alunos (CRUD)
-function addAluno(data) {
-    const db = getDB();
-    // Evita duplicatas pelo nome
-    if (db.alunos.some(a => a.nome.toLowerCase() === data.nome.toLowerCase())) {
-        alert('⚠️ Erro: Já existe um aluno com este nome!');
+// Salva dados no localStorage
+function saveDB(data) {
+    try {
+        localStorage.setItem(DB_KEY, JSON.stringify(data));
+        // Dispara evento personalizado para outras páginas saberem
+        window.dispatchEvent(new Event('db-updated'));
+        return true;
+    } catch (error) {
+        console.error('Erro ao salvar banco de dados:', error);
         return false;
     }
-    data.id = Date.now().toString(); // Gera ID único
-    db.alunos.push(data);
-    saveDB(db);
-    return true;
 }
 
-function updateAluno(id, newData) {
+// === ALUNOS ===
+function addAluno(alunoData) {
+    const db = getDB();
+    
+    // Verifica duplicata
+    if (db.alunos.some(a => a.nome.toLowerCase() === alunoData.nome.toLowerCase())) {
+        return { success: false, message: 'Já existe um aluno com este nome!' };
+    }
+    
+    const novoAluno = {
+        id: Date.now().toString(),
+        nome: alunoData.nome.trim(),
+        nivel: alunoData.nivel,
+        telefone: alunoData.telefone?.trim() || '',
+        links: alunoData.links || [],
+        created_at: new Date().toISOString()
+    };
+    
+    db.alunos.push(novoAluno);
+    saveDB(db);
+    
+    return { success: true, data: novoAluno };
+}
+
+function updateAluno(id, alunoData) {
     const db = getDB();
     const index = db.alunos.findIndex(a => a.id === id);
-    if (index !== -1) {
-        db.alunos[index] = { ...db.alunos[index], ...newData };
-        saveDB(db);
-        return true;
+    
+    if (index === -1) {
+        return { success: false, message: 'Aluno não encontrado!' };
     }
-    return false;
+    
+    // Verifica duplicata (exceto o próprio aluno sendo editado)
+    if (db.alunos.some(a => a.nome.toLowerCase() === alunoData.nome.toLowerCase() && a.id !== id)) {
+        return { success: false, message: 'Já existe um aluno com este nome!' };
+    }
+    
+    db.alunos[index] = {
+        ...db.alunos[index],
+        nome: alunoData.nome.trim(),
+        nivel: alunoData.nivel,
+        telefone: alunoData.telefone?.trim() || '',
+        links: alunoData.links || [],
+        updated_at: new Date().toISOString()
+    };
+    
+    saveDB(db);
+    return { success: true, data: db.alunos[index] };
 }
 
 function deleteAluno(id) {
-    if (!confirm('Tem certeza que deseja excluir este aluno?')) return;
     const db = getDB();
+    const initialLength = db.alunos.length;
     db.alunos = db.alunos.filter(a => a.id !== id);
+    
+    if (db.alunos.length === initialLength) {
+        return { success: false, message: 'Aluno não encontrado!' };
+    }
+    
     saveDB(db);
-    return true;
+    return { success: true };
 }
 
-// 3. Utilitários
+function getAlunos() {
+    return getDB().alunos;
+}
+
+function getAlunoById(id) {
+    return getDB().alunos.find(a => a.id === id);
+}
+
+// === UTILITÁRIOS ===
 function formatCurrency(value) {
-    return parseFloat(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    return parseFloat(value || 0).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+    });
 }
 
-// 4. Dashboard (Atualiza os cards do index.html)
-function renderDashboard() {
-    const db = getDB();
-    
-    // Atualiza contadores
-    const elAlunos = document.getElementById('dash-alunos');
-    if (elAlunos) elAlunos.textContent = db.alunos.length;
-    
-    const elTurmas = document.getElementById('dash-turmas');
-    if (elTurmas) elTurmas.textContent = db.turmas.length;
-
-    const elCefr = document.getElementById('dash-cefr');
-    if (elCefr) elCefr.textContent = db.cefr.length;
-
-    // Atualiza financeiro
-    const saldo = db.financeiro.entradas - db.financeiro.saidas;
-    const elSaldo = document.getElementById('dash-saldo');
-    if (elSaldo) elSaldo.textContent = formatCurrency(saldo);
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR');
 }
 
-// Inicializa ao carregar qualquer página
-document.addEventListener('DOMContentLoaded', renderDashboard);
+// Inicializa o DB quando o script carrega
+initDB();
+
+// Exporta funções globalmente
+window.CadernoDB = {
+    getDB,
+    saveDB,
+    addAluno,
+    updateAluno,
+    deleteAluno,
+    getAlunos,
+    getAlunoById,
+    formatCurrency,
+    formatDate
+};
