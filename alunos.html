@@ -51,16 +51,6 @@
             padding: 20px;
         }
         .modal.active { display: flex; }
-        
-        .link-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 500;
-        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased">
@@ -147,7 +137,7 @@
 
         <!-- Grid de Alunos -->
         <div id="studentsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <!-- Cards serão inseridos via JavaScript -->
+            <div class="text-center py-8 text-gray-500">Carregando alunos...</div>
         </div>
 
         <!-- Empty State -->
@@ -200,12 +190,9 @@
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Links & Recursos</label>
-                    <div id="linksContainer" class="space-y-2 mb-2"></div>
-                    <button type="button" onclick="addLinkInput()" 
-                            class="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1 font-medium">
-                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Adicionar Link
-                    </button>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="email" 
+                           class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
                 
                 <div class="flex gap-3 pt-4 border-t border-gray-100">
@@ -230,7 +217,7 @@
     </footer>
 
     <!-- Scripts -->
-    <script src="app.js"></script>
+    <script type="module" src="app.js"></script>
     <script>
         // === TEMA ===
         if (localStorage.getItem('theme') === 'dark' || 
@@ -246,94 +233,75 @@
         document.getElementById('year').textContent = new Date().getFullYear();
 
         // === RENDERIZAÇÃO ===
-        function renderStudents() {
-            const alunos = CadernoDB.getAlunos();
-            const list = document.getElementById('studentsList');
-            const empty = document.getElementById('emptyState');
-            
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            const level = document.getElementById('levelFilter').value;
-            
-            let filtered = alunos.filter(a => {
-                const matchSearch = a.nome.toLowerCase().includes(search);
-                const matchLevel = level ? a.nivel === level : true;
-                return matchSearch && matchLevel;
-            });
-            
-            if (filtered.length === 0) {
-                list.innerHTML = '';
-                empty.classList.remove('hidden');
-                empty.classList.add('flex');
-                return;
-            }
-            
-            empty.classList.add('hidden');
-            empty.classList.remove('flex');
-            
-            list.innerHTML = filtered.map(aluno => {
-                const linkColors = {
-                    link: 'bg-blue-50 text-blue-700 border-blue-200',
-                    video: 'bg-red-50 text-red-700 border-red-200',
-                    pdf: 'bg-orange-50 text-orange-700 border-orange-200'
-                };
+        async function renderStudents() {
+            try {
+                const alunos = await window.getAlunos();
+                const list = document.getElementById('studentsList');
+                const empty = document.getElementById('emptyState');
                 
-                const linkIcons = {
-                    link: 'link',
-                    video: 'youtube',
-                    pdf: 'file-text'
-                };
+                const search = document.getElementById('searchInput').value.toLowerCase();
+                const level = document.getElementById('levelFilter').value;
                 
-                let linksHtml = '';
-                if (aluno.links && aluno.links.length > 0) {
-                    linksHtml = `<div class="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-2">`;
-                    aluno.links.forEach(link => {
-                        const colorClass = linkColors[link.tipo] || linkColors.link;
-                        const icon = linkIcons[link.tipo] || linkIcons.link;
-                        linksHtml += `
-                            <a href="${link.url}" target="_blank" 
-                               class="link-badge ${colorClass} border hover:opacity-80 transition">
-                                <i data-lucide="${icon}" class="w-3 h-3"></i>
-                                ${link.label || 'Link'}
-                            </a>`;
-                    });
-                    linksHtml += `</div>`;
+                let filtered = alunos.filter(a => {
+                    const matchSearch = a.nome.toLowerCase().includes(search);
+                    const matchLevel = level ? a.nivel === level : true;
+                    return matchSearch && matchLevel;
+                });
+                
+                if (filtered.length === 0) {
+                    list.innerHTML = '';
+                    empty.classList.remove('hidden');
+                    empty.classList.add('flex');
+                    return;
                 }
                 
-                return `
-                <div class="student-card relative group">
-                    <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition flex gap-1">
-                        <button onclick="editStudent('${aluno.id}')" 
-                                class="p-1.5 bg-gray-100 hover:bg-blue-100 rounded-lg text-blue-600 transition" title="Editar">
-                            <i data-lucide="pencil" class="w-4 h-4"></i>
-                        </button>
-                        <button onclick="deleteStudent('${aluno.id}')" 
-                                class="p-1.5 bg-gray-100 hover:bg-red-100 rounded-lg text-red-600 transition" title="Excluir">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                            ${aluno.nome.charAt(0).toUpperCase()}
+                empty.classList.add('hidden');
+                empty.classList.remove('flex');
+                
+                list.innerHTML = filtered.map(aluno => {
+                    return `
+                    <div class="student-card relative group">
+                        <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition flex gap-1">
+                            <button onclick="editStudent('${aluno.id}')" 
+                                    class="p-1.5 bg-gray-100 hover:bg-blue-100 rounded-lg text-blue-600 transition" title="Editar">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteStudent('${aluno.id}')" 
+                                    class="p-1.5 bg-gray-100 hover:bg-red-100 rounded-lg text-red-600 transition" title="Excluir">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
                         </div>
-                        <div class="flex-1 min-w-0">
-                            <h3 class="font-semibold text-gray-900 truncate">${aluno.nome}</h3>
-                            <span class="inline-block mt-1 px-2 py-0.5 rounded bg-purple-50 text-purple-700 text-xs font-medium">
-                                ${aluno.nivel}
-                            </span>
-                            ${aluno.telefone ? `
-                                <p class="text-sm text-gray-500 mt-2 flex items-center gap-1">
-                                    <i data-lucide="phone" class="w-3 h-3"></i>
-                                    ${aluno.telefone}
-                                </p>
-                            ` : ''}
-                            ${linksHtml}
+                        
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                                ${aluno.nome.charAt(0).toUpperCase()}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-gray-900 truncate">${aluno.nome}</h3>
+                                <span class="inline-block mt-1 px-2 py-0.5 rounded bg-purple-50 text-purple-700 text-xs font-medium">
+                                    ${aluno.nivel}
+                                </span>
+                                ${aluno.telefone ? `
+                                    <p class="text-sm text-gray-500 mt-2 flex items-center gap-1">
+                                        <i data-lucide="phone" class="w-3 h-3"></i>
+                                        ${aluno.telefone}
+                                    </p>
+                                ` : ''}
+                                ${aluno.email ? `
+                                    <p class="text-sm text-gray-500 flex items-center gap-1">
+                                        <i data-lucide="mail" class="w-3 h-3"></i>
+                                        ${aluno.email}
+                                    </p>
+                                ` : ''}
+                            </div>
                         </div>
-                    </div>
-                </div>`;
-            }).join('');
-            
-            lucide.createIcons();
+                    </div>`;
+                }).join('');
+                
+                lucide.createIcons();
+            } catch (error) {
+                console.error('Erro ao renderizar alunos:', error);
+            }
         }
 
         // === MODAL ===
@@ -344,97 +312,58 @@
             
             form.reset();
             document.getElementById('editId').value = '';
-            document.getElementById('linksContainer').innerHTML = '';
-            addLinkInput();
             
             if (studentId) {
-                const aluno = CadernoDB.getAlunoById(studentId);
-                if (aluno) {
-                    title.textContent = 'Editar Aluno';
-                    document.getElementById('editId').value = aluno.id;
-                    document.getElementById('nome').value = aluno.nome;
-                    document.getElementById('nivel').value = aluno.nivel;
-                    document.getElementById('telefone').value = aluno.telefone || '';
-                    
-                    if (aluno.links && aluno.links.length > 0) {
-                        document.getElementById('linksContainer').innerHTML = '';
-                        aluno.links.forEach(l => addLinkInput(l.url, l.label, l.tipo));
+                // Buscar aluno para edição
+                window.getAlunos().then(alunos => {
+                    const aluno = alunos.find(a => a.id === studentId);
+                    if (aluno) {
+                        title.textContent = 'Editar Aluno';
+                        document.getElementById('editId').value = aluno.id;
+                        document.getElementById('nome').value = aluno.nome;
+                        document.getElementById('nivel').value = aluno.nivel;
+                        document.getElementById('telefone').value = aluno.telefone || '';
+                        document.getElementById('email').value = aluno.email || '';
                     }
-                }
+                });
             } else {
                 title.textContent = 'Novo Aluno';
             }
             
             modal.classList.add('active');
-            lucide.createIcons();
         }
 
         function closeModal() {
             document.getElementById('studentModal').classList.remove('active');
         }
 
-        function addLinkInput(url = '', label = '', tipo = 'link') {
-            const container = document.getElementById('linksContainer');
-            const div = document.createElement('div');
-            div.className = 'flex gap-2';
-            div.innerHTML = `
-                <select class="link-tipo flex-1 px-2 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
-                    <option value="link" ${tipo === 'link' ? 'selected' : ''}>Link</option>
-                    <option value="video" ${tipo === 'video' ? 'selected' : ''}>Vídeo</option>
-                    <option value="pdf" ${tipo === 'pdf' ? 'selected' : ''}>PDF</option>
-                </select>
-                <input type="text" placeholder="URL" value="${url}" 
-                       class="link-url flex-1 px-2 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
-                <input type="text" placeholder="Nome" value="${label}" 
-                       class="link-label w-24 px-2 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
-                <button type="button" onclick="this.parentElement.remove()" 
-                        class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                </button>
-            `;
-            container.appendChild(div);
-            lucide.createIcons();
-        }
-
-        function getLinksFromForm() {
-            const links = [];
-            document.querySelectorAll('#linksContainer > div').forEach(row => {
-                const url = row.querySelector('.link-url').value.trim();
-                if (url) {
-                    links.push({
-                        tipo: row.querySelector('.link-tipo').value,
-                        url: url,
-                        label: row.querySelector('.link-label').value.trim() || 'Acessar'
-                    });
-                }
-            });
-            return links;
-        }
-
         // === FORM SUBMIT ===
-        document.getElementById('studentForm').addEventListener('submit', function(e) {
+        document.getElementById('studentForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const id = document.getElementById('editId').value;
             const alunoData = {
                 nome: document.getElementById('nome').value,
                 nivel: document.getElementById('nivel').value,
-                telefone: document.getElementById('telefone').value,
-                links: getLinksFromForm()
+                telefone: document.getElementById('telefone').value || null,
+                email: document.getElementById('email').value || null
             };
             
-            let result;
-            if (id) {
-                result = CadernoDB.updateAluno(id, alunoData);
-            } else {
-                result = CadernoDB.addAluno(alunoData);
-            }
-            
-            if (result.success) {
-                closeModal();
-                renderStudents();
-            } else {
-                alert(result.message);
+            try {
+                let result;
+                if (id) {
+                    result = await window.updateAluno(id, alunoData);
+                } else {
+                    result = await window.addAluno(alunoData);
+                }
+                
+                if (result !== false) {
+                    closeModal();
+                    await renderStudents();
+                }
+            } catch (error) {
+                console.error('Erro ao salvar:', error);
+                alert('Erro ao salvar aluno: ' + error.message);
             }
         });
 
@@ -443,14 +372,13 @@
             openModal(id);
         }
 
-        function deleteStudent(id) {
+        async function deleteStudent(id) {
             if (!confirm('Tem certeza que deseja excluir este aluno?')) return;
             
-            const result = CadernoDB.deleteAluno(id);
-            if (result.success) {
-                renderStudents();
-            } else {
-                alert(result.message);
+            try {
+                await window.deleteAluno(id);
+            } catch (error) {
+                console.error('Erro ao excluir:', error);
             }
         }
 
@@ -472,8 +400,8 @@
             lucide.createIcons();
         });
 
-        // Atualiza quando o banco de dados mudar (outra aba)
-        window.addEventListener('db-updated', renderStudents);
+        // Atualiza quando o banco de dados mudar
+        window.addEventListener('db-update', renderStudents);
     </script>
 </body>
 </html>
