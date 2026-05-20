@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Caderno Online</title>
+    <link rel="icon" href="image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238b5cf6'><path d='M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25'/></svg>">
+    
+    <!-- CDNs -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Configuração Tailwind -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        primary: '#8b5cf6',
+                        secondary: '#ec4899'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid #f1f5f9;
+            transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+        .icon-box {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; flex-shrink: 0;
+        }
+        .progress-bg { background-color: #f1f5f9; border-radius: 999px; height: 8px; overflow: hidden; width: 100%; }
+        .progress-fill { height: 100%; border-radius: 999px; transition: width 1s ease; }
+        .nav-link.active { background-color: white; color: #1e293b; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .loading { opacity: 0.6; pointer-events: none; }
+    </style>
+</head>
+<body class="text-gray-800 antialiased">
+
+    <!-- 1. HEADER -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-md">
+                    <i data-lucide="book-open" class="w-6 h-6 text-white"></i>
+                </div>
+                <h1 class="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                    Caderno Online
+                </h1>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <button onclick="syncData()" class="p-2 rounded-lg hover:bg-gray-100 transition" title="Sincronizar Dados">
+                    <i data-lucide="refresh-cw" class="w-5 h-5 text-gray-600"></i>
+                </button>
+                <button id="themeToggle" class="p-2 rounded-lg hover:bg-gray-100 transition">
+                    <i data-lucide="sun" class="w-5 h-5 text-gray-600"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 2. NAVEGAÇÃO -->
+    <nav class="bg-gray-50 border-b border-gray-200 py-3 sticky top-16 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-1 overflow-x-auto pb-2 md:pb-0">
+                <a href="index.html" class="nav-link active flex items-center gap-2 px-4 py-2 rounded-lg text-sm whitespace-nowrap">
+                    <i data-lucide="layout-grid" class="w-4 h-4"></i> Dashboard
+                </a>
+                <a href="alunos.html" class="nav-link flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 whitespace-nowrap">
+                    <i data-lucide="users" class="w-4 h-4"></i> Alunos
+                </a>
+                <a href="turmas.html" class="nav-link flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 whitespace-nowrap">
+                    <i data-lucide="graduation-cap" class="w-4 h-4"></i> Turmas
+                </a>
+                <a href="cefr.html" class="nav-link flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 whitespace-nowrap">
+                    <i data-lucide="book-marked" class="w-4 h-4"></i> CEFR
+                </a>
+                <a href="material.html" class="nav-link flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 whitespace-nowrap">
+                    <i data-lucide="link-2" class="w-4 h-4"></i> Material
+                </a>
+                <a href="agenda.html" class="nav-link flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 whitespace-nowrap">
+                    <i data-lucide="calendar" class="w-4 h-4"></i> Agenda
+                </a>
+                <a href="financeiro.html" class="nav-link flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 whitespace-nowrap">
+                    <i data-lucide="wallet" class="w-4 h-4"></i> Pagamentos
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 3. CONTEÚDO PRINCIPAL -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" id="dashboard-content">
+        
+        <!-- Título -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-900">Visão Geral</h2>
+            <p class="text-gray-500 text-sm mt-1">Acompanhe o progresso e métricas principais.</p>
+        </div>
+
+        <!-- Skeleton Loader -->
+        <div id="skeleton-loader" class="space-y-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 animate-pulse">
+                <div class="h-24 bg-gray-200 rounded-lg"></div>
+                <div class="h-24 bg-gray-200 rounded-lg"></div>
+                <div class="h-24 bg-gray-200 rounded-lg"></div>
+                <div class="h-24 bg-gray-200 rounded-lg"></div>
+                <div class="h-24 bg-gray-200 rounded-lg"></div>
+                <div class="h-24 bg-gray-200 rounded-lg"></div>
+            </div>
+        </div>
+
+        <!-- Conteúdo carregará aqui -->
+        <div id="dashboard-body" style="display: none;">
+            <!-- LINHA 1: Estatísticas (6 Cards) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+                <div class="stat-card flex items-center gap-3">
+                    <div class="icon-box bg-gradient-to-br from-purple-400 to-purple-600">
+                        <i data-lucide="users" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 uppercase">Alunos</p>
+                        <p class="text-2xl font-bold text-gray-900" id="stat-alunos">-</p>
+                    </div>
+                </div>
+
+                <div class="stat-card flex items-center gap-3">
+                    <div class="icon-box bg-gradient-to-br from-blue-400 to-blue-600">
+                        <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 uppercase">Turmas</p>
+                        <p class="text-2xl font-bold text-gray-900" id="stat-turmas">-</p>
+                    </div>
+                </div>
+
+                <div class="stat-card flex items-center gap-3">
+                    <div class="icon-box bg-gradient-to-br from-emerald-400 to-emerald-600">
+                        <i data-lucide="book-open" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 uppercase">Aulas CEFR</p>
+                        <p class="text-2xl font-bold text-gray-900" id="stat-cefr">-</p>
+                    </div>
+                </div>
+
+                <div class="stat-card flex items-center gap-3">
+                    <div class="icon-box bg-gradient-to-br from-orange-400 to-orange-600">
+                        <i data-lucide="calendar-check" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 uppercase">Agendadas</p>
+                        <p class="text-2xl font-bold text-gray-900" id="stat-agendadas">-</p>
+                    </div>
+                </div>
+
+                <div class="stat-card flex items-center gap-3">
+                    <div class="icon-box bg-gradient-to-br from-green-400 to-green-600">
+                        <i data-lucide="check-circle" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 uppercase">Concluídas</p>
+                        <p class="text-2xl font-bold text-green-600" id="stat-concluidas">-</p>
+                    </div>
+                </div>
+
+                <div class="stat-card flex items-center gap-3">
+                    <div class="icon-box bg-gradient-to-br from-amber-400 to-amber-600">
+                        <i data-lucide="clock" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 uppercase">Andamento</p>
+                        <p class="text-2xl font-bold text-amber-600" id="stat-andamento">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LINHA 2: Resumo Financeiro -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="stat-card bg-green-50 border-green-100">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-bold text-green-800 uppercase">Total Entradas</h3>
+                        <div class="p-2 bg-green-200 rounded-lg text-green-700">
+                            <i data-lucide="arrow-down-left" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <p class="text-3xl font-bold text-green-700" id="fin-entradas">-</p>
+                </div>
+
+                <div class="stat-card bg-red-50 border-red-100">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-bold text-red-800 uppercase">Total Saídas</h3>
+                        <div class="p-2 bg-red-200 rounded-lg text-red-700">
+                            <i data-lucide="arrow-up-right" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <p class="text-3xl font-bold text-red-700" id="fin-saidas">-</p>
+                </div>
+
+                <div class="stat-card bg-purple-50 border-purple-100">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-bold text-purple-800 uppercase">Saldo Atual</h3>
+                        <div class="p-2 bg-purple-200 rounded-lg text-purple-700">
+                            <i data-lucide="wallet" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <p class="text-3xl font-bold text-purple-700" id="fin-saldo">-</p>
+                </div>
+            </div>
+
+            <!-- LINHA 3: Gráficos e Listas -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Distribuição CEFR -->
+                <div class="stat-card col-span-1">
+                    <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                        <i data-lucide="bar-chart-2" class="w-5 h-5 text-purple-600"></i>
+                        Nível dos Alunos
+                    </h3>
+                    <div class="space-y-5">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-bold text-gray-500 w-6">A1</span>
+                            <div class="progress-bg flex-1"><div class="progress-fill bg-red-400" id="bar-a1" style="width: 0%"></div></div>
+                            <span class="text-xs font-bold text-gray-700 w-4 text-right" id="cefr-a1">-</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-bold text-gray-500 w-6">A2</span>
+                            <div class="progress-bg flex-1"><div class="progress-fill bg-orange-400" id="bar-a2" style="width: 0%"></div></div>
+                            <span class="text-xs font-bold text-gray-700 w-4 text-right" id="cefr-a2">-</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-bold text-gray-500 w-6">B1</span>
+                            <div class="progress-bg flex-1"><div class="progress-fill bg-yellow-400" id="bar-b1" style="width: 0%"></div></div>
+                            <span class="text-xs font-bold text-gray-700 w-4 text-right" id="cefr-b1">-</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-bold text-gray-500 w-6">B2</span>
+                            <div class="progress-bg flex-1"><div class="progress-fill bg-lime-500" id="bar-b2" style="width: 0%"></div></div>
+                            <span class="text-xs font-bold text-gray-700 w-4 text-right" id="cefr-b2">-</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-bold text-gray-500 w-6">C1</span>
+                            <div class="progress-bg flex-1"><div class="progress-fill bg-green-500" id="bar-c1" style="width: 0%"></div></div>
+                            <span class="text-xs font-bold text-gray-700 w-4 text-right" id="cefr-c1">-</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-bold text-gray-500 w-6">C2</span>
+                            <div class="progress-bg flex-1"><div class="progress-fill bg-emerald-600" id="bar-c2" style="width: 0%"></div></div>
+                            <span class="text-xs font-bold text-gray-700 w-4 text-right" id="cefr-c2">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Listas Recentes -->
+                <div class="stat-card col-span-1 lg:col-span-2 flex flex-col gap-6">
+                    
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <i data-lucide="users" class="w-5 h-5 text-purple-600"></i>
+                            Alunos Recentes
+                        </h3>
+                        <div id="recent-students" class="flex flex-col gap-3">
+                            <div class="text-center py-8 text-gray-400 text-sm">Carregando...</div>
+                        </div>
+                    </div>
+
+                    <hr class="border-gray-100">
+
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <i data-lucide="calendar" class="w-5 h-5 text-purple-600"></i>
+                            Próximas Aulas
+                        </h3>
+                        <div id="upcoming-classes" class="flex flex-col gap-3">
+                            <div class="text-center py-8 text-gray-400 text-sm">Carregando...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-6 mt-8">
+        <div class="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500">
+            © 2026 Caderno Online — Plataforma de Ensino de Idiomas | Conectado com Supabase
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script type="module">
+        import './app-supabase.js';
+
+        // TEMA
+        const html = document.documentElement;
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            html.classList.toggle('dark');
+        });
+
+        // ATUALIZAR DASHBOARD
+        async function updateDashboard() {
+            const stats = await window.getDashboardStats();
+            if (!stats) {
+                console.error('Erro ao carregar dados');
+                return;
+            }
+
+            // Mostrar conteúdo
+            document.getElementById('skeleton-loader').style.display = 'none';
+            document.getElementById('dashboard-body').style.display = 'block';
+
+            // Atualizar stats
+            document.getElementById('stat-alunos').textContent = stats.alunos;
+            document.getElementById('stat-turmas').textContent = stats.turmas;
+            document.getElementById('stat-cefr').textContent = stats.cefr;
+            document.getElementById('stat-agendadas').textContent = stats.agenda.agendadas;
+            document.getElementById('stat-concluidas').textContent = stats.agenda.concluidas;
+            document.getElementById('stat-andamento').textContent = stats.agenda.andamento;
+
+            // Financeiro
+            document.getElementById('fin-entradas').textContent = window.formatCurrency(stats.financeiro.entradas);
+            document.getElementById('fin-saidas').textContent = window.formatCurrency(stats.financeiro.saidas);
+            document.getElementById('fin-saldo').textContent = window.formatCurrency(stats.financeiro.saldo);
+
+            // CEFR Bars
+            const total = Object.values(stats.cefrDistribution).reduce((a, b) => a + b, 0) || 1;
+            ['a1', 'a2', 'b1', 'b2', 'c1', 'c2'].forEach(l => {
+                const count = stats.cefrDistribution[l.toUpperCase()];
+                document.getElementById(`cefr-${l}`).textContent = count;
+                document.getElementById(`bar-${l}`).style.width = `${(count / total) * 100}%`;
+            });
+
+            // Alunos Recentes
+            const students = await window.getAlunos();
+            const recentStudents = students.slice(-3).reverse();
+            const studentsContainer = document.getElementById('recent-students');
+            if (recentStudents.length > 0) {
+                studentsContainer.innerHTML = recentStudents.map(a => `
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
+                        <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-sm">
+                            ${a.nome.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-900">${a.nome}</p>
+                            <p class="text-xs text-gray-500">${a.nivel} ${a.telefone ? '• ' + a.telefone : ''}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                studentsContainer.innerHTML = '<div class="text-center py-4 text-gray-400 text-sm">Nenhum aluno cadastrado</div>';
+            }
+
+            // Próximas Aulas
+            const agenda = await window.getAgenda('agendada');
+            const today = new Date().toISOString().split('T')[0];
+            const upcoming = agenda.filter(a => a.data >= today).slice(0, 3);
+            const classesContainer = document.getElementById('upcoming-classes');
+            if (upcoming.length > 0) {
+                classesContainer.innerHTML = upcoming.map(a => `
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition border-l-4 border-purple-500">
+                        <div class="text-center min-w-[50px]">
+                            <p class="text-xs font-bold text-gray-500 uppercase">${new Date(a.data).toLocaleDateString('pt-BR', {month:'short'})}</p>
+                            <p class="text-xl font-bold text-gray-900 leading-none">${new Date(a.data).getDate()}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-900">${a.titulo}</p>
+                            <p class="text-xs text-gray-500">${a.horario || 'Sem horário'}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                classesContainer.innerHTML = '<div class="text-center py-4 text-gray-400 text-sm">Nenhuma aula agendada</div>';
+            }
+
+            lucide.createIcons();
+        }
+
+        // SYNC MANUAL
+        async function syncData() {
+            await updateDashboard();
+            alert('✅ Dados sincronizados!');
+        }
+
+        // Exportar para window
+        window.syncData = syncData;
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDashboard();
+            window.addEventListener('db-update', updateDashboard);
+        });
+    </script>
+</body>
+</html>
