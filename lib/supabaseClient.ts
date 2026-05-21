@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl =
   process.env.NEXT_PUBLIC_SUPABASE_URL ||
-  "https://vhzuisrsrnxofuxyymfa.supabase.co/rest/v1/";
+  "https://vhzuisrsrnxofuxyymfa.supabase.co";
 
 const supabaseAnonKey =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
