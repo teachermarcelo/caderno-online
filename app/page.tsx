@@ -1,348 +1,804 @@
 // app/page.tsx
-// Página principal do Dashboard - Caderno Online
-// Função: Exibir visão geral com estatísticas e navegação por tabs
-
 "use client";
 
-import { useState, useEffect } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Users,
-  GraduationCap,
+  ArrowDownRight,
+  ArrowUpRight,
   BookMarked,
-  Link2,
   Calendar,
-  Wallet,
+  ChartColumn,
+  DollarSign,
+  GraduationCap,
   LayoutDashboard,
+  Link2,
+  Loader2,
   Moon,
+  Plus,
+  RefreshCw,
   Sun,
   TrendingUp,
-  ChartColumn,
-  ArrowUpRight,
-  ArrowDownRight,
-  DollarSign,
+  Users,
+  Wallet,
 } from "lucide-react";
 
-// Types para melhor organização e type safety
+import {
+  addAgenda,
+  addAluno,
+  addCefr,
+  addFinanceiro,
+  addMaterial,
+  addTurma,
+  formatCurrency,
+  getAgenda,
+  getAlunos,
+  getCefr,
+  getDashboardStats,
+  getFinanceiro,
+  getMaterial,
+  getTurmas,
+  normalizeServiceError,
+  type Agenda,
+  type Aluno,
+  type Cefr,
+  type DashboardStats,
+  type Financeiro,
+  type Material,
+  type NivelCEFR,
+  type StatusAgenda,
+  type TipoFinanceiro,
+  type Turma,
+} from "@/lib/cadernoService";
+
 type TabId = "home" | "alunos" | "turmas" | "cefr" | "material" | "agenda" | "financeiro";
 
-interface StatCard {
-  label: string;
-  value: number;
-  icon: React.ElementType;
-  gradient: string;
-  highlightColor?: string;
-}
+const levels: NivelCEFR[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
-interface FinancialData {
-  entradas: number;
-  saidas: number;
-  saldo: number;
-}
+const tabs: { id: TabId; label: string; icon: React.ElementType }[] = [
+  { id: "home", label: "Home", icon: LayoutDashboard },
+  { id: "alunos", label: "Alunos", icon: Users },
+  { id: "turmas", label: "Turmas", icon: GraduationCap },
+  { id: "cefr", label: "CEFR", icon: BookMarked },
+  { id: "material", label: "Material", icon: Link2 },
+  { id: "agenda", label: "Agenda", icon: Calendar },
+  { id: "financeiro", label: "Financeiro", icon: Wallet },
+];
 
-interface CEFRData {
-  level: string;
-  count: number;
-  color: string;
-}
+const emptyStats: DashboardStats = {
+  alunos: 0,
+  turmas: 0,
+  cefr: 0,
+  agenda: { agendadas: 0, andamento: 0, concluidas: 0 },
+  financeiro: { entradas: 0, saidas: 0, saldo: 0 },
+  cefrDistribution: { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 },
+};
 
 export default function DashboardPage() {
-  // Estado para a tab ativa
   const [activeTab, setActiveTab] = useState<TabId>("home");
-  
-  // Estado para o tema (claro/escuro)
   const [isDark, setIsDark] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  // Efeito para aplicar o tema no HTML
-  useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add("dark");
-      document.documentElement.style.colorScheme = "dark";
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const [stats, setStats] = useState<DashboardStats>(emptyStats);
+  const [alunos, setAlunos] = useState<Aluno[]>([]);
+  const [turmas, setTurmas] = useState<Turma[]>([]);
+  const [cefr, setCefr] = useState<Cefr[]>([]);
+  const [material, setMaterial] = useState<Material[]>([]);
+  const [agenda, setAgenda] = useState<Agenda[]>([]);
+  const [financeiro, setFinanceiro] = useState<Financeiro[]>([]);
+
+  const showMessage = useCallback((type: "success" | "error", message: string) => {
+    if (type === "success") {
+      setSuccess(message);
+      setError("");
     } else {
-      document.documentElement.classList.remove("dark");
-      document.documentElement.style.colorScheme = "light";
+      setError(message);
+      setSuccess("");
     }
-    // Salvar preferência no localStorage
-    localStorage.setItem("theme", isDark ? "dark" : "light");
-  }, [isDark]);
 
-  // Carregar tema salvo ao iniciar
+    window.setTimeout(() => {
+      setSuccess("");
+      setError("");
+    }, 4500);
+  }, []);
+
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const [
+        dashboardStats,
+        alunosData,
+        turmasData,
+        cefrData,
+        materialData,
+        agendaData,
+        financeiroData,
+      ] = await Promise.all([
+        getDashboardStats(),
+        getAlunos(),
+        getTurmas(),
+        getCefr(),
+        getMaterial(),
+        getAgenda(),
+        getFinanceiro(),
+      ]);
+
+      setStats(dashboardStats);
+      setAlunos(alunosData);
+      setTurmas(turmasData);
+      setCefr(cefrData);
+      setMaterial(materialData);
+      setAgenda(agendaData);
+      setFinanceiro(financeiroData);
+    } catch (err) {
+      showMessage("error", normalizeServiceError(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [showMessage]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
   useEffect(() => {
     const saved = localStorage.getItem("theme");
-    if (saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    if (saved === "dark" || (!saved && prefersDark)) {
       setIsDark(true);
     }
   }, []);
 
-  // Dados mockados (serão substituídos por API/DB depois)
-  const stats: StatCard[] = [
-    { label: "Alunos", value: 0, icon: Users, gradient: "from-purple-500 to-pink-500" },
-    { label: "Turmas", value: 0, icon: GraduationCap, gradient: "from-blue-500 to-cyan-500" },
-    { label: "Aulas CEFR", value: 0, icon: BookMarked, gradient: "from-green-500 to-teal-500" },
-    { label: "Agendadas", value: 0, icon: Calendar, gradient: "from-amber-500 to-orange-500" },
-    { label: "Concluídas", value: 0, icon: TrendingUp, gradient: "from-green-500 to-teal-500", highlightColor: "text-green-600 dark:text-green-400" },
-    { label: "Em Andamento", value: 0, icon: ChartColumn, gradient: "from-amber-500 to-orange-500", highlightColor: "text-amber-600 dark:text-amber-400" },
-  ];
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDark);
+    document.documentElement.style.colorScheme = isDark ? "dark" : "light";
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+  }, [isDark]);
 
-  const financial: FinancialData = { entradas: 0, saidas: 0, saldo: 0 };
+  const statCards = useMemo(
+    () => [
+      { label: "Alunos", value: stats.alunos, icon: Users, gradient: "from-purple-500 to-pink-500" },
+      { label: "Turmas", value: stats.turmas, icon: GraduationCap, gradient: "from-blue-500 to-cyan-500" },
+      { label: "Aulas CEFR", value: stats.cefr, icon: BookMarked, gradient: "from-green-500 to-teal-500" },
+      { label: "Agendadas", value: stats.agenda.agendadas, icon: Calendar, gradient: "from-amber-500 to-orange-500" },
+      { label: "Concluídas", value: stats.agenda.concluidas, icon: TrendingUp, gradient: "from-green-500 to-teal-500", highlightColor: "text-green-600 dark:text-green-400" },
+      { label: "Em Andamento", value: stats.agenda.andamento, icon: ChartColumn, gradient: "from-amber-500 to-orange-500", highlightColor: "text-amber-600 dark:text-amber-400" },
+    ],
+    [stats]
+  );
 
-  const cefrLevels: CEFRData[] = [
-    { level: "A1", count: 0, color: "bg-red-500" },
-    { level: "A2", count: 0, color: "bg-orange-500" },
-    { level: "B1", count: 0, color: "bg-yellow-500" },
-    { level: "B2", count: 0, color: "bg-lime-500" },
-    { level: "C1", count: 0, color: "bg-green-500" },
-    { level: "C2", count: 0, color: "bg-emerald-500" },
-  ];
+  async function handleSubmit(action: () => Promise<void>, message: string) {
+    try {
+      setSaving(true);
+      await action();
+      showMessage("success", message);
+      await loadData();
+    } catch (err) {
+      showMessage("error", normalizeServiceError(err));
+    } finally {
+      setSaving(false);
+    }
+  }
 
-  // Configuração das tabs
-  const tabs: { id: TabId; label: string; icon: React.ElementType }[] = [
-    { id: "home", label: "Home", icon: LayoutDashboard },
-    { id: "alunos", label: "Alunos", icon: Users },
-    { id: "turmas", label: "Turmas", icon: GraduationCap },
-    { id: "cefr", label: "CEFR", icon: BookMarked },
-    { id: "material", label: "Material", icon: Link2 },
-    { id: "agenda", label: "Agenda", icon: Calendar },
-    { id: "financeiro", label: "Financeiro", icon: Wallet },
-  ];
+  async function submitAluno(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+
+    await handleSubmit(
+      () =>
+        addAluno({
+          nome: String(form.get("nome") || ""),
+          nivel: String(form.get("nivel") || "A1") as NivelCEFR,
+          telefone: String(form.get("telefone") || ""),
+          email: String(form.get("email") || ""),
+        }),
+      "Aluno salvo com sucesso."
+    );
+
+    event.currentTarget.reset();
+  }
+
+  async function submitTurma(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+
+    await handleSubmit(
+      () =>
+        addTurma({
+          nome: String(form.get("nome") || ""),
+          descricao: String(form.get("descricao") || ""),
+        }),
+      "Turma salva com sucesso."
+    );
+
+    event.currentTarget.reset();
+  }
+
+  async function submitCefr(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+
+    await handleSubmit(
+      () =>
+        addCefr({
+          nivel: String(form.get("nivel") || "A1") as NivelCEFR,
+          descricao: String(form.get("descricao") || ""),
+        }),
+      "CEFR salvo com sucesso."
+    );
+
+    event.currentTarget.reset();
+  }
+
+  async function submitMaterial(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+
+    await handleSubmit(
+      () =>
+        addMaterial({
+          titulo: String(form.get("titulo") || ""),
+          url: String(form.get("url") || ""),
+          descricao: String(form.get("descricao") || ""),
+        }),
+      "Material salvo com sucesso."
+    );
+
+    event.currentTarget.reset();
+  }
+
+  async function submitAgenda(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+
+    await handleSubmit(
+      () =>
+        addAgenda({
+          titulo: String(form.get("titulo") || ""),
+          data: String(form.get("data") || ""),
+          horario: String(form.get("horario") || ""),
+          status: String(form.get("status") || "agendada") as StatusAgenda,
+          alunoId: String(form.get("alunoId") || ""),
+        }),
+      "Aula salva na agenda."
+    );
+
+    event.currentTarget.reset();
+  }
+
+  async function submitFinanceiro(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+
+    await handleSubmit(
+      () =>
+        addFinanceiro({
+          tipo: String(form.get("tipo") || "entrada") as TipoFinanceiro,
+          valor: Number(form.get("valor") || 0),
+          descricao: String(form.get("descricao") || ""),
+          data: String(form.get("data") || ""),
+        }),
+      "Transação salva com sucesso."
+    );
+
+    event.currentTarget.reset();
+  }
+
+  const upcomingClasses = agenda
+    .filter((item) => item.status !== "concluida")
+    .slice(0, 5);
+
+  const recentStudents = alunos.slice(-5).reverse();
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
-      {/* Header fixo com navegação e tema */}
-      <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          {/* Logo */}
+    <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100">
+      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/90">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center animate-pulse-slow">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-md">
               <BookMarked className="h-5 w-5 text-white" />
             </div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-              Caderno Online
-            </h1>
+            <div>
+              <h1 className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-xl font-bold text-transparent">
+                Caderno Online
+              </h1>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Conectado com Supabase</p>
+            </div>
           </div>
 
-          {/* Toggle de tema flutuante */}
-          <button
-            onClick={() => setIsDark(!isDark)}
-            className="group relative inline-flex items-center justify-center size-9 rounded-full 
-                       bg-muted hover:bg-accent transition-all duration-300 hover:scale-110 
-                       focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-            aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
-          >
-            <Sun className={`h-5 w-5 transition-all duration-300 ${isDark ? "rotate-90 opacity-0 absolute" : "opacity-100"}`} />
-            <Moon className={`h-5 w-5 transition-all duration-300 ${isDark ? "opacity-100" : "-rotate-90 opacity-0 absolute"}`} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={loadData}
+              disabled={loading}
+              className="rounded-lg p-2 transition hover:bg-slate-100 disabled:opacity-50 dark:hover:bg-slate-900"
+              title="Atualizar dados"
+            >
+              <RefreshCw className={`h-5 w-5 ${loading ? "animate-spin" : ""}`} />
+            </button>
+
+            <button
+              onClick={() => setIsDark((value) => !value)}
+              className="rounded-lg p-2 transition hover:bg-slate-100 dark:hover:bg-slate-900"
+              aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
+            >
+              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* Conteúdo principal */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
-        {/* Navegação por Tabs */}
-        <div className="flex flex-col gap-4 w-full mb-8">
-          <div 
-            role="tablist"
-            className="bg-muted/50 rounded-xl p-1 grid grid-cols-4 sm:grid-cols-7 gap-1"
-          >
+      <main className="mx-auto w-full max-w-7xl px-4 py-6">
+        <nav className="mb-6 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="grid grid-cols-4 gap-1 sm:grid-cols-7">
             {tabs.map((tab) => {
               const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
+              const active = activeTab === tab.id;
+
               return (
                 <button
                   key={tab.id}
-                  role="tab"
-                  aria-selected={isActive}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`
-                    inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg 
-                    text-xs sm:text-sm font-medium transition-all duration-300
-                    focus:outline-none focus:ring-2 focus:ring-purple-500/50
-                    ${isActive 
-                      ? "bg-background shadow-sm text-foreground scale-105" 
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
-                    }
-                  `}
+                  className={`flex items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs font-semibold transition sm:text-sm ${
+                    active
+                      ? "bg-purple-600 text-white shadow-sm"
+                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                  }`}
                 >
-                  <Icon className="h-4 w-4 shrink-0" />
+                  <Icon className="h-4 w-4" />
                   <span className="hidden sm:inline">{tab.label}</span>
                 </button>
               );
             })}
           </div>
-        </div>
+        </nav>
 
-        {/* Conteúdo da Tab HOME */}
-        {activeTab === "home" && (
-          <div className="space-y-6 animate-fade-in">
-            
-            {/* Cards de Estatísticas */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {stats.map((stat, index) => {
-                const Icon = stat.icon;
-                return (
-                  <div
-                    key={stat.label}
-                    className="group bg-card rounded-xl border p-4 
-                               hover:shadow-lg hover:-translate-y-1 transition-all duration-300
-                               cursor-default"
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`h-10 w-10 rounded-lg bg-gradient-to-br ${stat.gradient} 
-                                      flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>
-                        <Icon className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">{stat.label}</p>
-                        <p className={`text-2xl font-bold ${stat.highlightColor || ""}`}>
-                          {stat.value}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Resumo Financeiro */}
-            <div className="bg-card rounded-xl border p-6 hover:shadow-md transition-shadow">
-              <h3 className="font-semibold text-base flex items-center gap-2 mb-4">
-                <Wallet className="h-4 w-4 text-purple-500" />
-                Resumo Financeiro
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* Entradas */}
-                <div className="p-4 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
-                  <div className="flex items-center gap-2 mb-1">
-                    <ArrowUpRight className="h-4 w-4 text-green-600" />
-                    <span className="text-sm font-medium text-green-700 dark:text-green-400">Entradas</span>
-                  </div>
-                  <p className="text-2xl font-bold text-green-700 dark:text-green-400">
-                    R$ {financial.entradas.toFixed(2)}
-                  </p>
-                </div>
-                {/* Saídas */}
-                <div className="p-4 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
-                  <div className="flex items-center gap-2 mb-1">
-                    <ArrowDownRight className="h-4 w-4 text-red-600" />
-                    <span className="text-sm font-medium text-red-700 dark:text-red-400">Saídas</span>
-                  </div>
-                  <p className="text-2xl font-bold text-red-700 dark:text-red-400">
-                    R$ {financial.saidas.toFixed(2)}
-                  </p>
-                </div>
-                {/* Saldo */}
-                <div className="p-4 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
-                  <div className="flex items-center gap-2 mb-1">
-                    <DollarSign className="h-4 w-4 text-purple-600" />
-                    <span className="text-sm font-medium text-purple-700 dark:text-purple-400">Saldo</span>
-                  </div>
-                  <p className="text-2xl font-bold text-purple-700 dark:text-purple-400">
-                    R$ {financial.saldo.toFixed(2)}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Distribuição CEFR */}
-            <div className="bg-card rounded-xl border p-6 hover:shadow-md transition-shadow">
-              <h3 className="font-semibold text-base flex items-center gap-2 mb-4">
-                <ChartColumn className="h-4 w-4 text-purple-500" />
-                Distribuição CEFR
-              </h3>
-              <div className="space-y-3">
-                {cefrLevels.map((level) => {
-                  const total = cefrLevels.reduce((acc, l) => acc + l.count, 0);
-                  const percentage = total > 0 ? (level.count / total) * 100 : 0;
-                  return (
-                    <div key={level.level} className="flex items-center gap-3">
-                      <span className="text-xs font-semibold w-8 shrink-0">{level.level}</span>
-                      <div className="flex-1 bg-muted rounded-full h-3 overflow-hidden">
-                        <div 
-                          className={`${level.color} h-full rounded-full transition-all duration-700 ease-out`}
-                          style={{ width: `${percentage}%` }}
-                        />
-                      </div>
-                      <span className="text-xs w-6 text-right font-medium shrink-0">{level.count}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Cards: Alunos Recentes e Próximas Aulas */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-card rounded-xl border p-6 hover:shadow-md transition-shadow">
-                <h3 className="font-semibold text-base flex items-center gap-2 mb-4">
-                  <Users className="h-4 w-4 text-purple-500" />
-                  Alunos Recentes
-                </h3>
-                <p className="text-sm text-muted-foreground text-center py-6">
-                  Nenhum aluno cadastrado ainda.
-                </p>
-              </div>
-              <div className="bg-card rounded-xl border p-6 hover:shadow-md transition-shadow">
-                <h3 className="font-semibold text-base flex items-center gap-2 mb-4">
-                  <Calendar className="h-4 w-4 text-purple-500" />
-                  Próximas Aulas
-                </h3>
-                <p className="text-sm text-muted-foreground text-center py-6">
-                  Nenhuma aula agendada.
-                </p>
-              </div>
-            </div>
-
+        {(success || error) && (
+          <div
+            className={`mb-5 rounded-2xl border px-4 py-3 text-sm font-medium ${
+              success
+                ? "border-green-200 bg-green-50 text-green-700 dark:border-green-900 dark:bg-green-950/40 dark:text-green-300"
+                : "border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300"
+            }`}
+          >
+            {success || error}
           </div>
         )}
 
-        {/* Placeholder para outras tabs (serão desenvolvidas em seguida) */}
-        {activeTab !== "home" && (
-          <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
-            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 
-                          flex items-center justify-center mb-4 animate-bounce-slow">
-              {tabs.find(t => t.id === activeTab)?.icon && 
-                (() => { const Icon = tabs.find(t => t.id === activeTab)!.icon; return <Icon className="h-8 w-8 text-purple-500" />; })()
-              }
-            </div>
-            <h3 className="text-lg font-semibold mb-2">
-              {tabs.find(t => t.id === activeTab)?.label}
-            </h3>
-            <p className="text-muted-foreground max-w-sm">
-              Esta seção está em desenvolvimento. Em breve você poderá gerenciar {tabs.find(t => t.id === activeTab)?.label.toLowerCase()} aqui.
-            </p>
-          </div>
+        {loading ? (
+          <LoadingState />
+        ) : (
+          <>
+            {activeTab === "home" && (
+              <section className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-bold">Visão Geral</h2>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Métricas principais puxadas diretamente do Supabase.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+                  {statCards.map((stat) => {
+                    const Icon = stat.icon;
+
+                    return (
+                      <div
+                        key={stat.label}
+                        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${stat.gradient}`}>
+                            <Icon className="h-5 w-5 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">{stat.label}</p>
+                            <p className={`text-2xl font-bold ${stat.highlightColor || ""}`}>{stat.value}</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-3">
+                  <FinancialCard
+                    title="Entradas"
+                    value={stats.financeiro.entradas}
+                    icon={ArrowUpRight}
+                    className="border-green-200 bg-green-50 text-green-700 dark:border-green-900 dark:bg-green-950/30 dark:text-green-300"
+                  />
+                  <FinancialCard
+                    title="Saídas"
+                    value={stats.financeiro.saidas}
+                    icon={ArrowDownRight}
+                    className="border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300"
+                  />
+                  <FinancialCard
+                    title="Saldo"
+                    value={stats.financeiro.saldo}
+                    icon={DollarSign}
+                    className="border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-900 dark:bg-purple-950/30 dark:text-purple-300"
+                  />
+                </div>
+
+                <div className="grid gap-4 lg:grid-cols-3">
+                  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <h3 className="mb-4 flex items-center gap-2 font-bold">
+                      <ChartColumn className="h-5 w-5 text-purple-500" />
+                      Distribuição CEFR
+                    </h3>
+                    <div className="space-y-3">
+                      {levels.map((level) => {
+                        const total = Object.values(stats.cefrDistribution).reduce((sum, value) => sum + value, 0);
+                        const count = stats.cefrDistribution[level] || 0;
+                        const percentage = total > 0 ? (count / total) * 100 : 0;
+
+                        return (
+                          <div key={level} className="flex items-center gap-3">
+                            <span className="w-8 text-xs font-bold">{level}</span>
+                            <div className="h-3 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                              <div
+                                className="h-full rounded-full bg-purple-500 transition-all duration-700"
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                            <span className="w-8 text-right text-xs font-bold">{count}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <ListCard title="Alunos recentes" icon={Users}>
+                    {recentStudents.length === 0 ? (
+                      <EmptyMessage text="Nenhum aluno cadastrado ainda." />
+                    ) : (
+                      recentStudents.map((aluno) => (
+                        <div key={aluno.id} className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800">
+                          <p className="font-semibold">{aluno.nome}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">{aluno.nivel}</p>
+                        </div>
+                      ))
+                    )}
+                  </ListCard>
+
+                  <ListCard title="Próximas aulas" icon={Calendar}>
+                    {upcomingClasses.length === 0 ? (
+                      <EmptyMessage text="Nenhuma aula agendada." />
+                    ) : (
+                      upcomingClasses.map((item) => (
+                        <div key={item.id} className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800">
+                          <p className="font-semibold">{item.titulo}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {item.data} {item.horario ? `às ${item.horario}` : ""} • {item.status}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </ListCard>
+                </div>
+              </section>
+            )}
+
+            {activeTab === "alunos" && (
+              <ManagementSection
+                title="Alunos"
+                description="Cadastre e visualize os alunos salvos no Supabase."
+                form={
+                  <form onSubmit={submitAluno} className="grid gap-3 md:grid-cols-5">
+                    <Input name="nome" placeholder="Nome do aluno" required />
+                    <Select name="nivel" defaultValue="A1">
+                      {levels.map((level) => (
+                        <option key={level} value={level}>{level}</option>
+                      ))}
+                    </Select>
+                    <Input name="telefone" placeholder="Telefone" />
+                    <Input name="email" placeholder="E-mail" type="email" />
+                    <SubmitButton saving={saving} label="Salvar aluno" />
+                  </form>
+                }
+              >
+                <SimpleTable
+                  headers={["Nome", "Nível", "Telefone", "E-mail"]}
+                  rows={alunos.map((item) => [item.nome, item.nivel, item.telefone || "-", item.email || "-"])}
+                  empty="Nenhum aluno cadastrado."
+                />
+              </ManagementSection>
+            )}
+
+            {activeTab === "turmas" && (
+              <ManagementSection
+                title="Turmas"
+                description="Cadastre turmas e acompanhe a lista ativa."
+                form={
+                  <form onSubmit={submitTurma} className="grid gap-3 md:grid-cols-[1fr_2fr_auto]">
+                    <Input name="nome" placeholder="Nome da turma" required />
+                    <Input name="descricao" placeholder="Descrição" />
+                    <SubmitButton saving={saving} label="Salvar turma" />
+                  </form>
+                }
+              >
+                <SimpleTable
+                  headers={["Nome", "Descrição"]}
+                  rows={turmas.map((item) => [item.nome, item.descricao || "-"])}
+                  empty="Nenhuma turma cadastrada."
+                />
+              </ManagementSection>
+            )}
+
+            {activeTab === "cefr" && (
+              <ManagementSection
+                title="CEFR"
+                description="Cadastre conteúdos ou descrições por nível."
+                form={
+                  <form onSubmit={submitCefr} className="grid gap-3 md:grid-cols-[180px_1fr_auto]">
+                    <Select name="nivel" defaultValue="A1">
+                      {levels.map((level) => (
+                        <option key={level} value={level}>{level}</option>
+                      ))}
+                    </Select>
+                    <Input name="descricao" placeholder="Descrição da aula CEFR" />
+                    <SubmitButton saving={saving} label="Salvar CEFR" />
+                  </form>
+                }
+              >
+                <SimpleTable
+                  headers={["Nível", "Descrição"]}
+                  rows={cefr.map((item) => [item.nivel, item.descricao || "-"])}
+                  empty="Nenhum conteúdo CEFR cadastrado."
+                />
+              </ManagementSection>
+            )}
+
+            {activeTab === "material" && (
+              <ManagementSection
+                title="Material"
+                description="Cadastre links e materiais de apoio."
+                form={
+                  <form onSubmit={submitMaterial} className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
+                    <Input name="titulo" placeholder="Título" required />
+                    <Input name="url" placeholder="URL" />
+                    <Input name="descricao" placeholder="Descrição" />
+                    <SubmitButton saving={saving} label="Salvar material" />
+                  </form>
+                }
+              >
+                <SimpleTable
+                  headers={["Título", "URL", "Descrição"]}
+                  rows={material.map((item) => [item.titulo, item.url || "-", item.descricao || "-"])}
+                  empty="Nenhum material cadastrado."
+                />
+              </ManagementSection>
+            )}
+
+            {activeTab === "agenda" && (
+              <ManagementSection
+                title="Agenda"
+                description="Agende aulas e acompanhe seus status."
+                form={
+                  <form onSubmit={submitAgenda} className="grid gap-3 md:grid-cols-[1fr_160px_140px_160px_1fr_auto]">
+                    <Input name="titulo" placeholder="Título da aula" required />
+                    <Input name="data" type="date" required />
+                    <Input name="horario" type="time" />
+                    <Select name="status" defaultValue="agendada">
+                      <option value="agendada">Agendada</option>
+                      <option value="andamento">Andamento</option>
+                      <option value="concluida">Concluída</option>
+                    </Select>
+                    <Select name="alunoId" defaultValue="">
+                      <option value="">Sem aluno</option>
+                      {alunos.map((aluno) => (
+                        <option key={aluno.id} value={aluno.id}>{aluno.nome}</option>
+                      ))}
+                    </Select>
+                    <SubmitButton saving={saving} label="Salvar aula" />
+                  </form>
+                }
+              >
+                <SimpleTable
+                  headers={["Título", "Data", "Horário", "Status"]}
+                  rows={agenda.map((item) => [item.titulo, item.data, item.horario || "-", item.status])}
+                  empty="Nenhuma aula cadastrada."
+                />
+              </ManagementSection>
+            )}
+
+            {activeTab === "financeiro" && (
+              <ManagementSection
+                title="Financeiro"
+                description="Cadastre entradas e saídas."
+                form={
+                  <form onSubmit={submitFinanceiro} className="grid gap-3 md:grid-cols-[160px_160px_1fr_160px_auto]">
+                    <Select name="tipo" defaultValue="entrada">
+                      <option value="entrada">Entrada</option>
+                      <option value="saida">Saída</option>
+                    </Select>
+                    <Input name="valor" placeholder="Valor" type="number" step="0.01" required />
+                    <Input name="descricao" placeholder="Descrição" />
+                    <Input name="data" type="date" />
+                    <SubmitButton saving={saving} label="Salvar" />
+                  </form>
+                }
+              >
+                <SimpleTable
+                  headers={["Tipo", "Valor", "Descrição", "Data"]}
+                  rows={financeiro.map((item) => [
+                    item.tipo,
+                    formatCurrency(Number(item.valor)),
+                    item.descricao || "-",
+                    item.data,
+                  ])}
+                  empty="Nenhuma transação cadastrada."
+                />
+              </ManagementSection>
+            )}
+          </>
         )}
       </main>
+    </div>
+  );
+}
 
-      {/* Footer */}
-      <footer className="mt-auto border-t bg-background/80 backdrop-blur-md py-4">
-        <div className="max-w-7xl mx-auto px-4 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Caderno Online — Plataforma de Ensino de Idiomas
-        </div>
-      </footer>
+function LoadingState() {
+  return (
+    <div className="flex min-h-[50vh] items-center justify-center rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex items-center gap-3 text-slate-500">
+        <Loader2 className="h-5 w-5 animate-spin" />
+        Carregando dados do Supabase...
+      </div>
+    </div>
+  );
+}
 
-      {/* Estilos de animação personalizados (inline para standalone) */}
-      <style jsx global>{`
-        @keyframes fade-in {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes pulse-slow {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.8; }
-        }
-        @keyframes bounce-slow {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.4s ease-out forwards;
-        }
-        .animate-pulse-slow {
-          animation: pulse-slow 3s ease-in-out infinite;
-        }
-        .animate-bounce-slow {
-          animation: bounce-slow 2s ease-in-out infinite;
-        }
-      `}</style>
+function FinancialCard({
+  title,
+  value,
+  icon: Icon,
+  className,
+}: {
+  title: string;
+  value: number;
+  icon: React.ElementType;
+  className: string;
+}) {
+  return (
+    <div className={`rounded-2xl border p-5 shadow-sm ${className}`}>
+      <div className="mb-2 flex items-center justify-between">
+        <p className="text-sm font-bold uppercase">{title}</p>
+        <Icon className="h-5 w-5" />
+      </div>
+      <p className="text-3xl font-bold">{formatCurrency(value)}</p>
+    </div>
+  );
+}
+
+function ListCard({
+  title,
+  icon: Icon,
+  children,
+}: {
+  title: string;
+  icon: React.ElementType;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <h3 className="mb-4 flex items-center gap-2 font-bold">
+        <Icon className="h-5 w-5 text-purple-500" />
+        {title}
+      </h3>
+      <div className="space-y-2">{children}</div>
+    </div>
+  );
+}
+
+function EmptyMessage({ text }: { text: string }) {
+  return <p className="rounded-xl bg-slate-50 p-5 text-center text-sm text-slate-500 dark:bg-slate-800 dark:text-slate-400">{text}</p>;
+}
+
+function ManagementSection({
+  title,
+  description,
+  form,
+  children,
+}: {
+  title: string;
+  description: string;
+  form: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-5">
+      <div>
+        <h2 className="text-2xl font-bold">{title}</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400">{description}</p>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        {form}
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      {...props}
+      className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 dark:border-slate-700 dark:bg-slate-950"
+    />
+  );
+}
+
+function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <select
+      {...props}
+      className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 dark:border-slate-700 dark:bg-slate-950"
+    />
+  );
+}
+
+function SubmitButton({ saving, label }: { saving: boolean; label: string }) {
+  return (
+    <button
+      type="submit"
+      disabled={saving}
+      className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-purple-600 px-4 text-sm font-bold text-white transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+      {label}
+    </button>
+  );
+}
+
+function SimpleTable({
+  headers,
+  rows,
+  empty,
+}: {
+  headers: string[];
+  rows: string[][];
+  empty: string;
+}) {
+  if (rows.length === 0) {
+    return <EmptyMessage text={empty} />;
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[640px] text-left text-sm">
+        <thead>
+          <tr className="border-b border-slate-200 text-xs uppercase text-slate-500 dark:border-slate-800 dark:text-slate-400">
+            {headers.map((header) => (
+              <th key={header} className="px-3 py-3 font-bold">
+                {header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, index) => (
+            <tr key={index} className="border-b border-slate-100 last:border-0 dark:border-slate-800">
+              {row.map((cell, cellIndex) => (
+                <td key={cellIndex} className="px-3 py-3">
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
